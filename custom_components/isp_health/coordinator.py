@@ -37,19 +37,10 @@ class ISPHealthDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         """Update data via library."""
         try:
-            # Import our ISP health monitor modules directly from the same directory
-            _LOGGER.info("Importing ISP health modules from custom_components/isp_health/")
-            import sys
-            import os
-            
-            # Add current directory to Python path
-            current_dir = os.path.dirname(__file__)
-            if current_dir not in sys.path:
-                sys.path.insert(0, current_dir)
-                _LOGGER.info("Added current directory to Python path: %s", current_dir)
-            
-            from isp_health import ISPHealthMonitor
-            from config import Config
+            # Import our ISP health monitor modules using relative imports
+            _LOGGER.info("Importing ISP health modules using relative imports")
+            from .isp_health import ISPHealthMonitor
+            from .config import Config
             _LOGGER.info("Successfully imported ISP health modules")
             
             # Create configuration from entry data

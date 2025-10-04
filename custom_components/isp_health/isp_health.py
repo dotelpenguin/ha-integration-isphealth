@@ -5,9 +5,9 @@ import logging
 from datetime import datetime
 from typing import Dict, Any, Optional
 
-from config import Config
-from ip_info import IPInfoManager
-from sensors import (
+from .config import Config
+from .ip_info import IPInfoManager
+from .sensor import (
     DNSConfigSensor, LatencySensor, PacketLossSensor, JitterSensor,
     ThroughputSensor, DNSReliabilitySensor, RouteStabilitySensor
 )
