@@ -418,17 +418,17 @@ class ThroughputSensor(BaseSensor):
     def _run_speedtest(self) -> Optional[Dict[str, float]]:
         """Run speedtest-cli"""
         try:
-        st = speedtest.Speedtest()
-        st.get_best_server()
+            st = speedtest.Speedtest()
+            st.get_best_server()
             st.download()
             st.upload()
             results = st.results.dict()
-        return {
+            return {
                 "download": results["download"],
                 "upload": results["upload"],
                 "ping": results["ping"]
             }
-            except Exception as e:
+        except Exception as e:
             logger.error(f"Speedtest failed: {e}")
             return None
 
