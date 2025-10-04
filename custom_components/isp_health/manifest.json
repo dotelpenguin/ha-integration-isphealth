@@ -13,5 +13,5 @@
     "dnspython>=2.1.0",
     "pydantic>=1.8.0"
   ],
-  "version": "1.0.5"
+  "version": "1.0.6"
 }
