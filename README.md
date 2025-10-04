@@ -21,11 +21,9 @@ This integration works **completely without any external API keys or paid servic
 - **Route Stability**: Traceroute analysis for route changes
 
 ### IP Information Sources (All Free, No API Keys Required)
-- **ip-api.com** (default) - 1,000 requests/month free, no API key required
-- **ipinfo.io** - 50,000 requests/month free, no API key required
-- **ipapi.co** - 1,000 requests/month free, no API key required
-- **ipapi.com** - 1,000 requests/month free, no API key required
-- **ipgeolocation.io** - Optional premium service (requires API key)
+- **ip-api.com** (default) - 45 requests/minute free, no API key required
+- **ipinfo.io** - 50,000 requests/month free, unlimited with token
+- **ipgeolocation.io** - Premium service, API key required
 
 ## 🏠 Home Assistant Integration
 
@@ -124,11 +122,9 @@ This project includes a standalone Python framework for testing and development 
 - **Throughput**: 1 hour to 24 hours (due to bandwidth usage)
 
 #### IP Information Sources
-- **ipinfo.io**: Default, requires token for higher limits
 - **ip-api.com**: Free alternative, no API key needed
-- **ipgeolocation.io**: Premium option, API key required
-- **ipapi.co**: Alternative service, token optional
-- **ipapi.com**: Another alternative, token optional
+- **ipinfo.io**: High-quality data, token optional for higher limits
+- **ipgeolocation.io**: Premium service, API key required
 
 #### Sensor Configuration
 Each sensor can be individually enabled/disabled and configured:

@@ -98,8 +98,6 @@ class ISPHealthDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "ipinfo": {"token": ip_info_token if ip_info_source == "ipinfo" else ""},
             "ipapi": {"token": ip_info_token if ip_info_source == "ipapi" else ""},
             "ipgeolocation": {"api_key": ip_info_token if ip_info_source == "ipgeolocation" else ""},
-            "ipapi_co": {"token": ip_info_token if ip_info_source == "ipapi_co" else ""},
-            "ipapi_com": {"token": ip_info_token if ip_info_source == "ipapi_com" else ""},
         }
         _LOGGER.info("IP Info Config created: %s", ip_info_config)
         

@@ -5,10 +5,9 @@ This integration is designed to work **completely without any external API keys 
 ## ✅ Free Services Used
 
 ### IP Information Sources (No API Key Required)
-1. **ip-api.com** (DEFAULT) - 1,000 requests/month free, no API key needed
-2. **ipinfo.io** - 50,000 requests/month free, no API key needed
-3. **ipapi.co** - 1,000 requests/month free, no API key needed
-4. **ipapi.com** - 1,000 requests/month free, no API key needed
+1. **ip-api.com** (DEFAULT) - 45 requests/minute free, no API key needed
+2. **ipinfo.io** - 50,000 requests/month free, unlimited with token
+3. **ipgeolocation.io** - Premium service, API key required
 
 ### Network Testing (No External Dependencies)
 - **Ping Tests** - Uses system `ping` command (free)
@@ -40,10 +39,9 @@ This integration is designed to work **completely without any external API keys 
 
 | Service | Free Tier | Notes |
 |---------|-----------|-------|
-| ip-api.com | 1,000 requests/month | Default choice |
-| ipinfo.io | 50,000 requests/month | Fallback option |
-| ipapi.co | 1,000 requests/month | Fallback option |
-| ipapi.com | 1,000 requests/month | Fallback option |
+| ip-api.com | 45 requests/minute | Default choice |
+| ipinfo.io | 50,000 requests/month | Token optional for unlimited |
+| ipgeolocation.io | Premium | API key required |
 | speedtest-cli | Unlimited | Tests public servers |
 
 ## 🎯 Default Configuration
@@ -58,10 +56,8 @@ The integration is configured to use **ip-api.com** as the default IP informatio
 
 If the primary service fails, the integration automatically tries:
 1. ip-api.com (free, no API key)
-2. ipinfo.io (free, no API key) 
-3. ipapi.co (free, no API key)
-4. ipapi.com (free, no API key)
-5. ipgeolocation.io (only if API key provided)
+2. ipinfo.io (free, no API key)
+3. ipgeolocation.io (only if API key provided)
 
 ## 🚀 Getting Started
 
@@ -75,7 +71,7 @@ python3 standalone_test.py --single
 ## 💡 Rate Limiting
 
 The integration respects free tier limits:
-- **IP Info**: 1,000 requests/month (ip-api.com)
+- **IP Info**: 45 requests/minute (ip-api.com)
 - **Speed Test**: No limits (uses public servers)
 - **Ping/DNS**: No limits (local network tests)
 

@@ -21,11 +21,9 @@ This integration works **completely without any external API keys or paid servic
 - **Route Stability**: Traceroute analysis for route changes
 
 ### IP Information Sources (All Free, No API Keys Required)
-- **ip-api.com** (default) - 1,000 requests/month free, no API key required
-- **ipinfo.io** - 50,000 requests/month free, no API key required
-- **ipapi.co** - 1,000 requests/month free, no API key required
-- **ipapi.com** - 1,000 requests/month free, no API key required
-- **ipgeolocation.io** - Optional premium service (requires API key)
+- **ip-api.com** (default) - 45 requests/minute free, no API key required
+- **ipinfo.io** - 50,000 requests/month free, unlimited with token
+- **ipgeolocation.io** - Premium service, API key required
 
 ## Installation
 

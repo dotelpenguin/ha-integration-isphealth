@@ -220,9 +220,7 @@ Edit `config.json` to customize:
   "ip_info_config": {
     "ipinfo": {"token": ""},
     "ipapi": {"token": ""},
-    "ipgeolocation": {"api_key": ""},
-    "ipapi_co": {"token": ""},
-    "ipapi_com": {"token": ""}
+    "ipgeolocation": {"api_key": ""}
   },
   "sensors": {
     "ip_info": {"enabled": true, "interval": 60},
