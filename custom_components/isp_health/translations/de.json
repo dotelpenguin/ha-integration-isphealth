@@ -1,0 +1,94 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "ISP-Gesundheitsmonitor Einrichtung",
+        "description": "Konfigurieren Sie Ihre ISP-Gesundheitsüberwachungseinstellungen. Diese Integration verfolgt die Qualität, Geschwindigkeit und Zuverlässigkeit Ihrer Internetverbindung. Alle Hauptfunktionen funktionieren ohne API-Schlüssel mit kostenlosen Diensten.",
+        "data": {
+          "update_interval": "Aktualisierungsintervall (Sekunden)",
+          "ip_info_source": "IP-Informationen Quelle (ip-api.com: 45 req/min, ipinfo.io: 50k req/monat, ipgeolocation.io: kostenpflichtig)",
+          "ip_info_token": "API-Token (ipinfo.io: unbegrenzte Anfragen, ipgeolocation.io: erforderlich)"
+        }
+      },
+      "core_sensors": {
+        "title": "Kern-Sensoren Konfiguration",
+        "description": "Konfigurieren Sie die Kern-Sensoren, die immer aktiviert sind. Diese bieten grundlegende Netzwerkinformationen.",
+        "data": {
+          "ip_info_interval": "IP-Informationen Aktualisierungsintervall (Sekunden)",
+          "dns_config_interval": "DNS-Konfiguration Aktualisierungsintervall (Sekunden)"
+        }
+      },
+      "extended_sensors": {
+        "title": "Erweiterte Sensoren Konfiguration",
+        "description": "Konfigurieren Sie optionale Sensoren für detaillierte Netzwerküberwachung. Aktivieren/deaktivieren und Aktualisierungsintervalle festlegen.",
+        "data": {
+          "enable_latency": "Netzwerk-Latenz-Überwachung aktivieren",
+          "latency_interval": "Latenz Aktualisierungsintervall (Sekunden)",
+          "enable_packet_loss": "Paketverlust-Überwachung aktivieren",
+          "packet_loss_interval": "Paketverlust Aktualisierungsintervall (Sekunden)",
+          "enable_jitter": "Netzwerk-Jitter-Überwachung aktivieren",
+          "jitter_interval": "Jitter Aktualisierungsintervall (Sekunden)",
+          "enable_throughput": "Durchsatz-Tests aktivieren",
+          "throughput_interval": "Durchsatz-Test Intervall (Sekunden)",
+          "enable_dns_reliability": "DNS-Zuverlässigkeits-Überwachung aktivieren",
+          "dns_reliability_interval": "DNS-Zuverlässigkeit Aktualisierungsintervall (Sekunden)",
+          "enable_route_stability": "Routen-Stabilitäts-Analyse aktivieren",
+          "route_stability_interval": "Routen-Stabilität Aktualisierungsintervall (Sekunden)"
+        }
+      },
+      "advanced": {
+        "title": "Erweiterte Optionen",
+        "description": "Konfigurieren Sie erweiterte Überwachungsoptionen und Timeouts.",
+        "data": {
+          "enable_debug_logging": "Debug-Protokollierung aktivieren",
+          "test_multiple_servers": "Mehrere Geschwindigkeitstest-Server testen",
+          "max_servers": "Maximale Anzahl zu testender Server",
+          "ping_timeout": "Ping-Timeout (Sekunden)",
+          "traceroute_timeout": "Traceroute-Timeout (Sekunden)",
+          "max_hops": "Maximale Hops für Traceroute"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Kann keine Verbindung zum ISP-Gesundheitsmonitor herstellen",
+      "invalid_auth": "Ungültige Authentifizierung",
+      "unknown": "Unbekannter Fehler aufgetreten"
+    },
+    "abort": {
+      "already_configured": "ISP-Gesundheitsmonitor ist bereits konfiguriert"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "ISP-Gesundheitsmonitor Optionen",
+        "description": "Ändern Sie Ihre ISP-Gesundheitsüberwachungskonfiguration. Änderungen werden nach dem Speichern wirksam.",
+        "data": {
+          "update_interval": "Aktualisierungsintervall (Sekunden)",
+          "ip_info_source": "IP-Informationen Quelle (ip-api.com: 45 req/min, ipinfo.io: 50k req/monat, ipgeolocation.io: kostenpflichtig)",
+          "ip_info_token": "API-Token (ipinfo.io: unbegrenzte Anfragen, ipgeolocation.io: erforderlich)",
+          "ip_info_interval": "IP-Informationen Aktualisierungsintervall (Sekunden)",
+          "dns_config_interval": "DNS-Konfiguration Aktualisierungsintervall (Sekunden)",
+          "enable_latency": "Netzwerk-Latenz-Überwachung aktivieren",
+          "latency_interval": "Latenz Aktualisierungsintervall (Sekunden)",
+          "enable_packet_loss": "Paketverlust-Überwachung aktivieren",
+          "packet_loss_interval": "Paketverlust Aktualisierungsintervall (Sekunden)",
+          "enable_jitter": "Netzwerk-Jitter-Überwachung aktivieren",
+          "jitter_interval": "Jitter Aktualisierungsintervall (Sekunden)",
+          "enable_throughput": "Durchsatz-Tests aktivieren",
+          "throughput_interval": "Durchsatz-Test Intervall (Sekunden)",
+          "enable_dns_reliability": "DNS-Zuverlässigkeits-Überwachung aktivieren",
+          "dns_reliability_interval": "DNS-Zuverlässigkeit Aktualisierungsintervall (Sekunden)",
+          "enable_route_stability": "Routen-Stabilitäts-Analyse aktivieren",
+          "route_stability_interval": "Routen-Stabilität Aktualisierungsintervall (Sekunden)",
+          "enable_debug_logging": "Debug-Protokollierung aktivieren",
+          "test_multiple_servers": "Mehrere Geschwindigkeitstest-Server testen",
+          "max_servers": "Maximale Anzahl zu testender Server",
+          "ping_timeout": "Ping-Timeout (Sekunden)",
+          "traceroute_timeout": "Traceroute-Timeout (Sekunden)",
+          "max_hops": "Maximale Hops für Traceroute"
+        }
+      }
+    }
+  }
+}

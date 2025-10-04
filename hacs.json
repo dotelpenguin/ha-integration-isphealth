@@ -1,0 +1,9 @@
+{
+  "name": "ISP Health Monitor",
+  "content_in_root": false,
+  "filename": "isp_health",
+  "country": ["US", "CA", "GB", "AU", "DE", "FR", "ES"],
+  "homeassistant": "2023.1.0",
+  "render_readme": true,
+  "iot_class": "Cloud Polling"
+}

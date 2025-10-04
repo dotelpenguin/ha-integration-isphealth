@@ -1,0 +1,64 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "ISP Health Monitor Setup",
+        "description": "Configure your ISP health monitoring settings. This integration tracks your internet connection quality, speed, and reliability. All core features work without API keys using free services.\n\n**Rate Limits:**\n• ip-api.com: 45 requests/minute (free)\n• ipinfo.io: 50,000 requests/month (free), unlimited with token\n• ipgeolocation.io: Requires API key (paid service)\n\n**Note:** {rate_limits}",
+        "data": {
+          "update_interval": "General Update Interval (seconds)",
+          "ip_info_source": "IP Information Provider (ip-api.com: 45 req/min, ipinfo.io: 50k req/month, ipgeolocation.io: paid)",
+          "ip_info_token": "API Token (ipinfo.io: unlimited requests, ipgeolocation.io: required)",
+          "ip_info_interval": "IP Information Check Interval (seconds) - Consider rate limits when setting",
+          "dns_config_interval": "DNS Configuration Check Interval (seconds)",
+          "enable_latency": "Enable Network Latency Monitoring",
+          "latency_interval": "Latency Check Interval (seconds)",
+          "enable_packet_loss": "Enable Packet Loss Monitoring",
+          "packet_loss_interval": "Packet Loss Check Interval (seconds)",
+          "enable_jitter": "Enable Network Jitter Monitoring",
+          "jitter_interval": "Jitter Check Interval (seconds)",
+          "enable_throughput": "Enable Speed Testing (Uses bandwidth)",
+          "throughput_interval": "Speed Test Interval (seconds)",
+          "enable_dns_reliability": "Enable DNS Reliability Monitoring",
+          "dns_reliability_interval": "DNS Reliability Check Interval (seconds)",
+          "enable_route_stability": "Enable Route Analysis (Advanced)",
+          "route_stability_interval": "Route Analysis Interval (seconds)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Unable to connect to ISP health monitor. Please check your internet connection and try again.",
+      "invalid_auth": "Invalid API token provided. Please check your token and try again.",
+      "unknown": "An unexpected error occurred. Please check the logs for more details."
+    },
+    "abort": {
+      "already_configured": "ISP Health Monitor is already configured. You can modify settings through the integration options."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "ISP Health Monitor Options",
+        "description": "Modify your ISP health monitoring configuration. Changes will take effect after saving. You can enable/disable sensors and adjust update intervals.",
+        "data": {
+          "update_interval": "General Update Interval (seconds)",
+          "ip_info_source": "IP Information Provider (ip-api.com: 45 req/min, ipinfo.io: 50k req/month, ipgeolocation.io: paid)",
+          "ip_info_token": "API Token (ipinfo.io: unlimited requests, ipgeolocation.io: required)",
+          "ip_info_interval": "IP Information Check Interval (seconds) - Consider rate limits when setting",
+          "dns_config_interval": "DNS Configuration Check Interval (seconds)",
+          "enable_latency": "Enable Network Latency Monitoring",
+          "latency_interval": "Latency Check Interval (seconds)",
+          "enable_packet_loss": "Enable Packet Loss Monitoring",
+          "packet_loss_interval": "Packet Loss Check Interval (seconds)",
+          "enable_jitter": "Enable Network Jitter Monitoring",
+          "jitter_interval": "Jitter Check Interval (seconds)",
+          "enable_throughput": "Enable Speed Testing (Uses bandwidth)",
+          "throughput_interval": "Speed Test Interval (seconds)",
+          "enable_dns_reliability": "Enable DNS Reliability Monitoring",
+          "dns_reliability_interval": "DNS Reliability Check Interval (seconds)",
+          "enable_route_stability": "Enable Route Analysis (Advanced)",
+          "route_stability_interval": "Route Analysis Interval (seconds)"
+        }
+      }
+    }
+  }
+}

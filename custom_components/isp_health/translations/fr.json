@@ -1,0 +1,94 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configuration du Moniteur de Santé ISP",
+        "description": "Configurez vos paramètres de surveillance de la santé ISP. Cette intégration suit la qualité, la vitesse et la fiabilité de votre connexion internet. Toutes les fonctionnalités principales fonctionnent sans clés API en utilisant des services gratuits.",
+        "data": {
+          "update_interval": "Intervalle de Mise à Jour (secondes)",
+          "ip_info_source": "Source d'Information IP (ip-api.com: 45 req/min, ipinfo.io: 50k req/mois, ipgeolocation.io: payant)",
+          "ip_info_token": "Token API (ipinfo.io: requêtes illimitées, ipgeolocation.io: requis)"
+        }
+      },
+      "core_sensors": {
+        "title": "Configuration des Capteurs Principaux",
+        "description": "Configurez les capteurs principaux qui sont toujours activés. Ceux-ci fournissent des informations de base sur le réseau.",
+        "data": {
+          "ip_info_interval": "Intervalle de Mise à Jour des Informations IP (secondes)",
+          "dns_config_interval": "Intervalle de Mise à Jour de la Configuration DNS (secondes)"
+        }
+      },
+      "extended_sensors": {
+        "title": "Configuration des Capteurs Étendus",
+        "description": "Configurez les capteurs optionnels pour la surveillance détaillée du réseau. Activer/désactiver et définir les intervalles de mise à jour.",
+        "data": {
+          "enable_latency": "Activer la Surveillance de la Latence Réseau",
+          "latency_interval": "Intervalle de Mise à Jour de la Latence (secondes)",
+          "enable_packet_loss": "Activer la Surveillance de la Perte de Paquets",
+          "packet_loss_interval": "Intervalle de Mise à Jour de la Perte de Paquets (secondes)",
+          "enable_jitter": "Activer la Surveillance du Jitter Réseau",
+          "jitter_interval": "Intervalle de Mise à Jour du Jitter (secondes)",
+          "enable_throughput": "Activer les Tests de Débit",
+          "throughput_interval": "Intervalle de Test de Débit (secondes)",
+          "enable_dns_reliability": "Activer la Surveillance de la Fiabilité DNS",
+          "dns_reliability_interval": "Intervalle de Mise à Jour de la Fiabilité DNS (secondes)",
+          "enable_route_stability": "Activer l'Analyse de Stabilité des Routes",
+          "route_stability_interval": "Intervalle de Mise à Jour de la Stabilité des Routes (secondes)"
+        }
+      },
+      "advanced": {
+        "title": "Options Avancées",
+        "description": "Configurez les options de surveillance avancées et les timeouts.",
+        "data": {
+          "enable_debug_logging": "Activer la Journalisation de Débogage",
+          "test_multiple_servers": "Tester Plusieurs Serveurs de Test de Vitesse",
+          "max_servers": "Nombre Maximum de Serveurs à Tester",
+          "ping_timeout": "Timeout Ping (secondes)",
+          "traceroute_timeout": "Timeout Traceroute (secondes)",
+          "max_hops": "Nombre Maximum de Sauts pour Traceroute"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossible de se connecter au moniteur de santé ISP",
+      "invalid_auth": "Authentification invalide",
+      "unknown": "Erreur inconnue s'est produite"
+    },
+    "abort": {
+      "already_configured": "Le Moniteur de Santé ISP est déjà configuré"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options du Moniteur de Santé ISP",
+        "description": "Modifiez votre configuration de surveillance de la santé ISP. Les modifications prendront effet après la sauvegarde.",
+        "data": {
+          "update_interval": "Intervalle de Mise à Jour (secondes)",
+          "ip_info_source": "Source d'Information IP (ip-api.com: 45 req/min, ipinfo.io: 50k req/mois, ipgeolocation.io: payant)",
+          "ip_info_token": "Token API (ipinfo.io: requêtes illimitées, ipgeolocation.io: requis)",
+          "ip_info_interval": "Intervalle de Mise à Jour des Informations IP (secondes)",
+          "dns_config_interval": "Intervalle de Mise à Jour de la Configuration DNS (secondes)",
+          "enable_latency": "Activer la Surveillance de la Latence Réseau",
+          "latency_interval": "Intervalle de Mise à Jour de la Latence (secondes)",
+          "enable_packet_loss": "Activer la Surveillance de la Perte de Paquets",
+          "packet_loss_interval": "Intervalle de Mise à Jour de la Perte de Paquets (secondes)",
+          "enable_jitter": "Activer la Surveillance du Jitter Réseau",
+          "jitter_interval": "Intervalle de Mise à Jour du Jitter (secondes)",
+          "enable_throughput": "Activer les Tests de Débit",
+          "throughput_interval": "Intervalle de Test de Débit (secondes)",
+          "enable_dns_reliability": "Activer la Surveillance de la Fiabilité DNS",
+          "dns_reliability_interval": "Intervalle de Mise à Jour de la Fiabilité DNS (secondes)",
+          "enable_route_stability": "Activer l'Analyse de Stabilité des Routes",
+          "route_stability_interval": "Intervalle de Mise à Jour de la Stabilité des Routes (secondes)",
+          "enable_debug_logging": "Activer la Journalisation de Débogage",
+          "test_multiple_servers": "Tester Plusieurs Serveurs de Test de Vitesse",
+          "max_servers": "Nombre Maximum de Serveurs à Tester",
+          "ping_timeout": "Timeout Ping (secondes)",
+          "traceroute_timeout": "Timeout Traceroute (secondes)",
+          "max_hops": "Nombre Maximum de Sauts pour Traceroute"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+test_isp_health:
+  name: Test ISP Health
+  description: Manually trigger an ISP health test
+  fields:
+    sensor_type:
+      name: Sensor Type
+      description: Type of sensor to test (optional, tests all if not specified)
+      required: false
+      selector:
+        select:
+          options:
+            - all
+            - ip_info
+            - dns_config
+            - latency
+            - packet_loss
+            - jitter
+            - throughput
+            - dns_reliability
+            - route_stability
+          default: all
+
+get_isp_report:
+  name: Get ISP Report
+  description: Get a comprehensive ISP health report
+  fields: {}
