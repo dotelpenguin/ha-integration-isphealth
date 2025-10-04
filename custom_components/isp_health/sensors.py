@@ -217,14 +217,14 @@ class LatencySensor(BaseSensor):
             
             if latencies:
                 avg_latency = sum(latencies) / len(latencies)
-            return {
+                return {
                     "average": round(avg_latency, 2),
                     "min": round(min(latencies), 2),
                     "max": round(max(latencies), 2),
-                "status": "online",
+                    "status": "online",
                     "error": None
-            }
-        else:
+                }
+            else:
                 return {
                     "average": 0,
                     "min": 0,
