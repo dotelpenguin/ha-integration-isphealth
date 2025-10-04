@@ -7,7 +7,7 @@ from typing import Dict, Any, Optional
 
 from .config import Config
 from .ip_info import IPInfoManager
-from .sensor import (
+from .sensors import (
     DNSConfigSensor, LatencySensor, PacketLossSensor, JitterSensor,
     ThroughputSensor, DNSReliabilitySensor, RouteStabilitySensor
 )
