@@ -69,6 +69,7 @@ class ISPHealthMonitor:
                 timeout=30  # 30 second timeout
             )
             logger.info(f"Successfully got IP information: {result.get('ip', 'unknown')}")
+            logger.info(f"Full IP info result: {result}")
             return result
         except asyncio.TimeoutError:
             logger.error("IP information request timed out")

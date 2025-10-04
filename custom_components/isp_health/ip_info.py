@@ -235,7 +235,7 @@ class IPInfoManager:
                 logger.info(f"Trying IP info source: {source}")
                 provider = self.providers[source]
                 data = await provider.get_ip_info()
-                logger.info(f"Successfully got IP info from {source}")
+                logger.info(f"Successfully got IP info from {source}: {data}")
                 return data
             except Exception as e:
                 logger.warning(f"Failed to get IP info from {source}: {e}")
