@@ -439,7 +439,7 @@ class DNSReliabilitySensor(BaseSensor):
     async def get_data(self) -> Dict[str, Any]:
         """Get DNS reliability"""
         try:
-        test_domains = ["google.com", "cloudflare.com", "github.com"]
+            test_domains = ["google.com", "cloudflare.com", "github.com"]
             successful_queries = 0
             total_queries = len(test_domains)
             
@@ -469,12 +469,12 @@ class DNSReliabilitySensor(BaseSensor):
     async def _test_dns_query(self, domain: str) -> bool:
         """Test DNS query for a domain"""
         try:
-        resolver = dns.resolver.Resolver()
-        resolver.timeout = 5
-        resolver.lifetime = 5
+            resolver = dns.resolver.Resolver()
+            resolver.timeout = 5
+            resolver.lifetime = 5
             result = resolver.resolve(domain, "A")
             return len(result) > 0
-            except Exception as e:
+        except Exception as e:
             logger.debug(f"DNS query failed for {domain}: {e}")
             return False
 
@@ -539,7 +539,7 @@ class RouteStabilitySensor(BaseSensor):
                 route = []
                 for line in stdout.decode('utf-8').split('\n'):
                     if 'traceroute' not in line and line.strip():
-            parts = line.split()
+                        parts = line.split()
                         if len(parts) >= 3 and parts[1] != '*':
                             route.append(parts[1])
                 return route
