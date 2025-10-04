@@ -77,7 +77,9 @@ class ISPHealthSensor(CoordinatorEntity[ISPHealthDataUpdateCoordinator], SensorE
             "name": "ISP Health Monitor",
             "manufacturer": "ISP Health Monitor",
             "model": "Network Monitor",
-            "sw_version": "1.0.0",
+            "sw_version": "1.0.7a",
+            "hw_version": "Python 3.x",
+            "configuration_url": "https://github.com/dotelpenguin/ha-integration-isphealth",
         }
 
     @property
