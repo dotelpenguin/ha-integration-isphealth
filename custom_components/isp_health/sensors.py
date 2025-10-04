@@ -58,59 +58,71 @@ class DNSConfigSensor(BaseSensor):
     async def _get_system_dns_servers(self) -> List[str]:
         """Get upstream DNS servers (not container DNS)"""
         dns_servers = []
-        try:
-            external_dns = await self._get_external_dns_detection()
-            if external_dns:
-                dns_servers.extend(external_dns)
-                logger.info(f"Detected external DNS servers: {external_dns}")
-        except Exception as e:
-            logger.debug(f"External DNS detection failed: {e}")
         
-        # Fallback to system resolv.conf
-        if not dns_servers:
+        # Try multiple methods to detect real DNS servers
+        methods = [
+            self._get_docker_host_dns,
+            self._get_gateway_dns,
+            self._get_systemd_resolve_dns,
+            self._get_resolv_conf_dns,
+            self._get_common_dns_servers
+        ]
+        
+        for method in methods:
             try:
-                with open('/etc/resolv.conf', 'r') as f:
-                    for line in f:
-                        if line.startswith('nameserver'):
-                            dns_ip = line.split()[1].strip()
-                            if dns_ip not in ["127.0.0.1", "::1"]:
-                                dns_servers.append(dns_ip)
+                detected_dns = await method()
+                if detected_dns:
+                    # Filter out container/internal DNS
+                    filtered_dns = [dns for dns in detected_dns if not self._is_container_dns(dns)]
+                    if filtered_dns:
+                        dns_servers.extend(filtered_dns)
+                        logger.info(f"Detected DNS servers via {method.__name__}: {filtered_dns}")
+                        break  # Use first successful method
             except Exception as e:
-                logger.debug(f"Failed to read resolv.conf: {e}")
+                logger.debug(f"DNS detection method {method.__name__} failed: {e}")
+        
+        # If no real DNS found, return common public DNS as fallback
+        if not dns_servers:
+            dns_servers = ["8.8.8.8", "1.1.1.1"]
+            logger.info(f"No real DNS detected, using fallback: {dns_servers}")
         
         return dns_servers
     
-    async def _get_external_dns_detection(self) -> List[str]:
-        """Use external services to detect actual DNS configuration"""
-        try:
-            import requests
-            # This is a blocking call, but it's in a try/except so it won't block if it fails
-            response = requests.get("https://1.1.1.1/dns-query?name=google.com&type=A", 
-                                 headers={"Accept": "application/dns-json"}, timeout=5)
-            if response.status_code == 200:
-                return await self._detect_actual_dns_server()
-        except Exception as e:
-            logger.debug(f"External DNS detection error: {e}")
-        return []
+    def _is_container_dns(self, dns_ip: str) -> bool:
+        """Check if DNS IP is from container/internal network"""
+        container_networks = [
+            "127.0.0.1", "::1",  # localhost
+            "172.",  # Docker default
+            "192.168.",  # Private networks
+            "10.",  # Private networks
+            "169.254.",  # Link-local
+        ]
+        return any(dns_ip.startswith(network) for network in container_networks)
     
-    async def _detect_actual_dns_server(self) -> List[str]:
-        """Detect the actual DNS server being used by the system"""
+    async def _get_docker_host_dns(self) -> List[str]:
+        """Get DNS from Docker host (if running in container)"""
         try:
+            # Try to get host's DNS by querying host.docker.internal
             process = await asyncio.create_subprocess_exec(
-                "dig", "@8.8.8.8", "google.com", "+short",
+                "nslookup", "host.docker.internal",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
             stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=10)
             
-            if process.returncode == 0 and stdout.decode('utf-8').strip():
-                return self._get_actual_system_dns()
+            if process.returncode == 0:
+                # Try to get DNS from host network
+                return await self._get_gateway_dns()
         except Exception:
             pass
-        
+        return []
+    
+    async def _get_gateway_dns(self) -> List[str]:
+        """Get DNS from network gateway"""
         try:
+            # Get default gateway
             process = await asyncio.create_subprocess_exec(
-                "nslookup", "google.com",
+                "ip", "route", "show", "default",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
@@ -118,37 +130,62 @@ class DNSConfigSensor(BaseSensor):
             
             if process.returncode == 0:
                 lines = stdout.decode('utf-8').split('\n')
-                for line in lines:
-                    if "Server:" in line:
-                        dns_ip = line.split("Server:")[1].strip()
-                        if dns_ip and dns_ip not in ["127.0.0.1", "::1"]:
-                            return [dns_ip]
+            for line in lines:
+                    if 'default via' in line:
+                        parts = line.split()
+                        if len(parts) >= 3:
+                            gateway = parts[2]
+                            # Gateway is often the DNS server too
+                            if not self._is_container_dns(gateway):
+                                return [gateway]
         except Exception:
             pass
-        
         return []
     
-    def _get_actual_system_dns(self) -> List[str]:
-        """Get DNS from systemd-resolve or similar"""
+    async def _get_systemd_resolve_dns(self) -> List[str]:
+        """Get DNS from systemd-resolve"""
         try:
-            process = subprocess.run(
-                ["systemd-resolve", "--status"], 
-                capture_output=True, text=True, timeout=5
+            process = await asyncio.create_subprocess_exec(
+                "systemd-resolve", "--status",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
             )
+            stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=10)
+            
             if process.returncode == 0:
-                lines = process.stdout.split('\n')
                 dns_servers = []
+                lines = stdout.decode('utf-8').split('\n')
                 for line in lines:
                     if 'DNS Servers:' in line or 'Current DNS Server:' in line:
                         parts = line.split(':')
                         if len(parts) > 1:
                             dns_ip = parts[1].strip()
-                            if dns_ip and dns_ip not in ["127.0.0.1", "::1"]:
+                            if dns_ip and not self._is_container_dns(dns_ip):
                                 dns_servers.append(dns_ip)
                 return dns_servers
         except Exception:
             pass
         return []
+    
+    async def _get_resolv_conf_dns(self) -> List[str]:
+        """Get DNS from resolv.conf (last resort)"""
+        try:
+            with open('/etc/resolv.conf', 'r') as f:
+                dns_servers = []
+                for line in f:
+                    if line.startswith('nameserver'):
+                        dns_ip = line.split()[1].strip()
+                        if not self._is_container_dns(dns_ip):
+                            dns_servers.append(dns_ip)
+            return dns_servers
+        except Exception:
+            pass
+        return []
+    
+    async def _get_common_dns_servers(self) -> List[str]:
+        """Return common public DNS servers as fallback"""
+        return ["8.8.8.8", "1.1.1.1", "9.9.9.9"]
+    
     
     async def _test_dns_resolution(self) -> bool:
         """Test DNS resolution"""
@@ -180,14 +217,14 @@ class LatencySensor(BaseSensor):
             
             if latencies:
                 avg_latency = sum(latencies) / len(latencies)
-                return {
+            return {
                     "average": round(avg_latency, 2),
                     "min": round(min(latencies), 2),
                     "max": round(max(latencies), 2),
-                    "status": "online",
+                "status": "online",
                     "error": None
-                }
-            else:
+            }
+        else:
                 return {
                     "average": 0,
                     "min": 0,
@@ -222,7 +259,7 @@ class LatencySensor(BaseSensor):
                     if 'time=' in line:
                         time_part = line.split('time=')[1].split()[0]
                         return float(time_part)
-            return None
+                return None
         except Exception as e:
             logger.debug(f"Ping failed for {host}: {e}")
             return None
@@ -381,17 +418,17 @@ class ThroughputSensor(BaseSensor):
     def _run_speedtest(self) -> Optional[Dict[str, float]]:
         """Run speedtest-cli"""
         try:
-            st = speedtest.Speedtest()
-            st.get_best_server()
+        st = speedtest.Speedtest()
+        st.get_best_server()
             st.download()
             st.upload()
             results = st.results.dict()
-            return {
+        return {
                 "download": results["download"],
                 "upload": results["upload"],
                 "ping": results["ping"]
             }
-        except Exception as e:
+            except Exception as e:
             logger.error(f"Speedtest failed: {e}")
             return None
 
@@ -402,7 +439,7 @@ class DNSReliabilitySensor(BaseSensor):
     async def get_data(self) -> Dict[str, Any]:
         """Get DNS reliability"""
         try:
-            test_domains = ["google.com", "cloudflare.com", "github.com"]
+        test_domains = ["google.com", "cloudflare.com", "github.com"]
             successful_queries = 0
             total_queries = len(test_domains)
             
@@ -432,12 +469,12 @@ class DNSReliabilitySensor(BaseSensor):
     async def _test_dns_query(self, domain: str) -> bool:
         """Test DNS query for a domain"""
         try:
-            resolver = dns.resolver.Resolver()
-            resolver.timeout = 5
-            resolver.lifetime = 5
+        resolver = dns.resolver.Resolver()
+        resolver.timeout = 5
+        resolver.lifetime = 5
             result = resolver.resolve(domain, "A")
             return len(result) > 0
-        except Exception as e:
+            except Exception as e:
             logger.debug(f"DNS query failed for {domain}: {e}")
             return False
 
@@ -502,7 +539,7 @@ class RouteStabilitySensor(BaseSensor):
                 route = []
                 for line in stdout.decode('utf-8').split('\n'):
                     if 'traceroute' not in line and line.strip():
-                        parts = line.split()
+            parts = line.split()
                         if len(parts) >= 3 and parts[1] != '*':
                             route.append(parts[1])
                 return route
