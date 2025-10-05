@@ -53,6 +53,13 @@ class DNSConfigSensor(BaseSensor):
                 "systemd_resolve_dns": method_results.get("_get_systemd_resolve_dns", []),
                 "resolv_conf_dns": method_results.get("_get_resolv_conf_dns", []),
                 "public_fallback_dns": method_results.get("_get_common_dns_servers", []),
+                # Raw (unfiltered) method outputs for diagnostics
+                "supervisor_dns_raw": method_results.get("_get_supervisor_dns_raw", []),
+                "docker_host_dns_raw": method_results.get("_get_docker_host_dns_raw", []),
+                "gateway_dns_raw": method_results.get("_get_gateway_dns_raw", []),
+                "systemd_resolve_dns_raw": method_results.get("_get_systemd_resolve_dns_raw", []),
+                "resolv_conf_dns_raw": method_results.get("_get_resolv_conf_dns_raw", []),
+                "public_fallback_dns_raw": method_results.get("_get_common_dns_servers_raw", []),
                 "status": "online" if resolution_test else "offline",
                 "error": None if resolution_test else "DNS resolution failed"
             }
@@ -84,7 +91,9 @@ class DNSConfigSensor(BaseSensor):
         for method in methods:
             try:
                 detected_dns = await method()
-                filtered_dns = [dns for dns in (detected_dns or []) if not self._is_container_dns(dns)]
+                raw = detected_dns or []
+                filtered_dns = [dns for dns in raw if not self._is_container_dns(dns)]
+                method_results[f"{method.__name__}_raw"] = raw
                 method_results[method.__name__] = filtered_dns
                 if not dns_servers and filtered_dns:
                     # First successful method defines primary/secondary and source
@@ -93,6 +102,7 @@ class DNSConfigSensor(BaseSensor):
                     source_used = method.__name__
             except Exception as e:
                 logger.debug(f"DNS detection method {method.__name__} failed: {e}")
+                method_results[f"{method.__name__}_raw"] = []
                 method_results[method.__name__] = []
         
         # If no real DNS found, return common public DNS as fallback
@@ -101,6 +111,7 @@ class DNSConfigSensor(BaseSensor):
             dns_servers = fallback
             logger.info(f"No real DNS detected, using fallback: {dns_servers}")
             source_used = "public_fallback"
+            method_results["_get_common_dns_servers_raw"] = fallback
             method_results["_get_common_dns_servers"] = fallback
         
         return dns_servers, source_used, method_results
@@ -139,15 +150,19 @@ class DNSConfigSensor(BaseSensor):
         return []
     
     def _is_container_dns(self, dns_ip: str) -> bool:
-        """Check if DNS IP is from container/internal network"""
-        container_networks = [
-            "127.0.0.1", "::1",  # localhost
-            "172.",  # Docker default
-            "192.168.",  # Private networks
-            "10.",  # Private networks
-            "169.254.",  # Link-local
-        ]
-        return any(dns_ip.startswith(network) for network in container_networks)
+        """Filter container/internal-only DNS.
+        Allow typical LAN resolvers (192.168.x.x, 10.x.x.x). Exclude localhost and known Supervisor DNS (172.30.*).
+        """
+        try:
+            if dns_ip.startswith("127.") or dns_ip == "::1":
+                return True
+            if dns_ip.startswith("172.30."):
+                return True
+            if dns_ip.startswith("169.254."):
+                return True
+        except Exception:
+            pass
+        return False
     
     async def _get_docker_host_dns(self) -> List[str]:
         """Get DNS from Docker host (if running in container)"""
