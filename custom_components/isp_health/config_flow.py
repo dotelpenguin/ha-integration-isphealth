@@ -21,7 +21,7 @@ from .const import (
     IP_INFO_SOURCES,
     SENSOR_TYPES,
 )
-from .options_flow import ISPHealthOptionsFlowHandler
+# Options flow disabled to prevent reconfiguration after initial setup
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -76,11 +76,6 @@ class ISPHealthConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for ISP Health Monitor."""
 
     VERSION = 1
-
-    @staticmethod
-    def async_get_options_flow(config_entry: config_entries.ConfigEntry):
-        """Get the options flow for this handler."""
-        return ISPHealthOptionsFlowHandler(config_entry)
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
