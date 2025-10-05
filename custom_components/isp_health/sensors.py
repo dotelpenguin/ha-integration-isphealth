@@ -34,7 +34,8 @@ class DNSConfigSensor(BaseSensor):
         """Get DNS configuration"""
         try:
             dns_servers, source, method_results = await self._get_system_dns_servers()
-            resolution_test = await self._test_dns_resolution()
+            # Use detected servers for resolution test; custom takes precedence via methods order
+            resolution_test = await self._test_dns_resolution(dns_servers)
             
             if dns_servers:
                 primary_dns = dns_servers[0] if len(dns_servers) > 0 else "Unknown"
@@ -79,15 +80,10 @@ class DNSConfigSensor(BaseSensor):
         source_used: str = "unknown"
         method_results: Dict[str, List[str]] = {}
         
-        # Try multiple methods to detect real DNS servers
+        # Try only the allowed methods: custom first, then gateway
         methods = [
             self._get_custom_dns,
             self._get_gateway_dns,
-            self._get_supervisor_dns,
-            self._get_docker_host_dns,
-            self._get_systemd_resolve_dns,
-            self._get_resolv_conf_dns,
-            self._get_common_dns_servers
         ]
         
         for method in methods:
@@ -107,14 +103,7 @@ class DNSConfigSensor(BaseSensor):
                 method_results[f"{method.__name__}_raw"] = []
                 method_results[method.__name__] = []
         
-        # If no real DNS found, return common public DNS as fallback
-        if not dns_servers:
-            fallback = ["8.8.8.8", "1.1.1.1"]
-            dns_servers = fallback
-            logger.info(f"No real DNS detected, using fallback: {dns_servers}")
-            source_used = "public_fallback"
-            method_results["_get_common_dns_servers_raw"] = fallback
-            method_results["_get_common_dns_servers"] = fallback
+        # Do not fallback to public DNS; return whatever was detected
         
         return dns_servers, source_used, method_results
 
@@ -265,12 +254,14 @@ class DNSConfigSensor(BaseSensor):
         return ["8.8.8.8", "1.1.1.1", "9.9.9.9"]
     
     
-    async def _test_dns_resolution(self) -> bool:
-        """Test DNS resolution"""
+    async def _test_dns_resolution(self, servers: List[str] | None = None) -> bool:
+        """Test DNS resolution using provided servers if any."""
         try:
             resolver = dns.resolver.Resolver()
             resolver.timeout = 5
             resolver.lifetime = 5
+            if servers:
+                resolver.nameservers = servers
             result = resolver.resolve("google.com", "A")
             return len(result) > 0
         except Exception as e:
