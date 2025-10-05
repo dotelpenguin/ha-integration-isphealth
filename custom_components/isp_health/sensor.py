@@ -154,6 +154,13 @@ class ISPHealthSensor(CoordinatorEntity[ISPHealthDataUpdateCoordinator], SensorE
                 "all_dns_servers": sensor_data.get("all_dns_servers", []),
                 "source": sensor_data.get("source"),
                 "resolution_test": sensor_data.get("resolution_test", {}),
+                # Per-method detection results
+                "supervisor_dns": sensor_data.get("supervisor_dns", []),
+                "docker_host_dns": sensor_data.get("docker_host_dns", []),
+                "gateway_dns": sensor_data.get("gateway_dns", []),
+                "systemd_resolve_dns": sensor_data.get("systemd_resolve_dns", []),
+                "resolv_conf_dns": sensor_data.get("resolv_conf_dns", []),
+                "public_fallback_dns": sensor_data.get("public_fallback_dns", []),
             })
         elif self._sensor_type == "latency":
             attrs.update({
