@@ -32,7 +32,7 @@ class DNSConfigSensor(BaseSensor):
     async def get_data(self) -> Dict[str, Any]:
         """Get DNS configuration"""
         try:
-            dns_servers = await self._get_system_dns_servers()
+            dns_servers, source = await self._get_system_dns_servers()
             resolution_test = await self._test_dns_resolution()
             
             if dns_servers:
@@ -45,6 +45,8 @@ class DNSConfigSensor(BaseSensor):
             return {
                 "primary_dns": primary_dns,
                 "secondary_dns": secondary_dns,
+                "all_dns_servers": dns_servers,
+                "source": source,
                 "status": "online" if resolution_test else "offline",
                 "error": None if resolution_test else "DNS resolution failed"
             }
@@ -57,9 +59,10 @@ class DNSConfigSensor(BaseSensor):
                 "error": str(e)
             }
     
-    async def _get_system_dns_servers(self) -> List[str]:
-        """Get upstream DNS servers (not container DNS)"""
-        dns_servers = []
+    async def _get_system_dns_servers(self) -> (List[str], str):
+        """Get upstream DNS servers (not container DNS) and the source used."""
+        dns_servers: List[str] = []
+        source_used: str = "unknown"
         
         # Try multiple methods to detect real DNS servers
         methods = [
@@ -80,6 +83,7 @@ class DNSConfigSensor(BaseSensor):
                     if filtered_dns:
                         dns_servers.extend(filtered_dns)
                         logger.info(f"Detected DNS servers via {method.__name__}: {filtered_dns}")
+                        source_used = method.__name__
                         break  # Use first successful method
             except Exception as e:
                 logger.debug(f"DNS detection method {method.__name__} failed: {e}")
@@ -88,8 +92,9 @@ class DNSConfigSensor(BaseSensor):
         if not dns_servers:
             dns_servers = ["8.8.8.8", "1.1.1.1"]
             logger.info(f"No real DNS detected, using fallback: {dns_servers}")
+            source_used = "public_fallback"
         
-        return dns_servers
+        return dns_servers, source_used
 
     async def _get_supervisor_dns(self) -> List[str]:
         """Get upstream DNS servers from Home Assistant Supervisor (if available)."""
