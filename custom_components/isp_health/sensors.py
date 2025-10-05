@@ -81,9 +81,10 @@ class DNSConfigSensor(BaseSensor):
         
         # Try multiple methods to detect real DNS servers
         methods = [
+            self._get_custom_dns,
+            self._get_gateway_dns,
             self._get_supervisor_dns,
             self._get_docker_host_dns,
-            self._get_gateway_dns,
             self._get_systemd_resolve_dns,
             self._get_resolv_conf_dns,
             self._get_common_dns_servers
@@ -116,6 +117,19 @@ class DNSConfigSensor(BaseSensor):
             method_results["_get_common_dns_servers"] = fallback
         
         return dns_servers, source_used, method_results
+
+    async def _get_custom_dns(self) -> List[str]:
+        """Return custom DNS servers from config if provided (comma/space separated)."""
+        raw = (self.config or {}).get("custom_dns", "")
+        if not raw:
+            return []
+        # Split by comma or whitespace, normalize and keep only IP-like tokens
+        parts = [p.strip() for chunk in raw.split(',') for p in chunk.split()] if raw else []
+        servers: List[str] = []
+        for p in parts:
+            if p and any(c.isdigit() for c in p):
+                servers.append(p)
+        return servers
 
     async def _get_supervisor_dns(self) -> List[str]:
         """Get upstream DNS servers from Home Assistant Supervisor (if available)."""

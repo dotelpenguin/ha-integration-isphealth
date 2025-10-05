@@ -77,6 +77,10 @@ class ISPHealthOptionsFlowHandler(config_entries.OptionsFlow):
                     "dns_config_interval", 
                     default=current_sensors.get("dns_config", {}).get("interval", 60)
                 ): vol.All(vol.Coerce(int), vol.Range(min=30, max=600)),
+                vol.Optional(
+                    "custom_dns",
+                    default=current_sensors.get("dns_config", {}).get("custom_dns", "")
+                ): str,
                 
                 # Extended sensors
                 vol.Required(
@@ -157,7 +161,8 @@ class ISPHealthOptionsFlowHandler(config_entries.OptionsFlow):
         }
         sensors_config["dns_config"] = {
             "enabled": True,
-            "interval": user_input.get("dns_config_interval", 60)
+            "interval": user_input.get("dns_config_interval", 60),
+            "custom_dns": user_input.get("custom_dns", ""),
         }
         
         # Extended sensors (user configurable)

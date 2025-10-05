@@ -42,6 +42,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         vol.Required("dns_config_interval", default=60): vol.All(
             vol.Coerce(int), vol.Range(min=30, max=600)
         ),
+        vol.Optional("custom_dns", default=""): str,
         # Extended sensors
         vol.Required("enable_latency", default=True): bool,
         vol.Required("latency_interval", default=60): vol.All(
@@ -125,7 +126,8 @@ class ISPHealthConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         }
         sensors_config["dns_config"] = {
             "enabled": True,
-            "interval": user_input.get("dns_config_interval", 60)
+            "interval": user_input.get("dns_config_interval", 60),
+            "custom_dns": user_input.get("custom_dns", ""),
         }
         
         # Extended sensors (user configurable)
