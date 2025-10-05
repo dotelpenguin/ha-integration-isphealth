@@ -76,7 +76,11 @@ class ISPHealthDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def _create_config_from_entry(self) -> dict[str, Any]:
         """Create configuration dictionary from config entry."""
-        entry_data = self.entry.data
+        # Merge entry data with options (options override data)
+        base_data = dict(self.entry.data or {})
+        options = dict(getattr(self.entry, "options", {}) or {})
+        # Shallow merge top-level
+        entry_data = {**base_data, **options}
         
         # Build IP info config
         ip_info_source = entry_data.get(CONF_IP_INFO_SOURCE, "ipapi")
@@ -92,7 +96,19 @@ class ISPHealthDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         _LOGGER.info("IP Info Config created: %s", ip_info_config)
         
         # Build sensors config
-        sensors_config = entry_data.get("sensors", {})
+        sensors_from_data = (self.entry.data or {}).get("sensors", {})
+        sensors_from_options = options.get("sensors", {})
+        # Deep merge sensors: options override per-sensor dict fields
+        sensors_config: dict[str, Any] = {}
+        for sensor_type in set(list(sensors_from_data.keys()) + list(sensors_from_options.keys())):
+            data_cfg = sensors_from_data.get(sensor_type, {})
+            opt_cfg = sensors_from_options.get(sensor_type, {})
+            if isinstance(data_cfg, dict) or isinstance(opt_cfg, dict):
+                merged = {**(data_cfg if isinstance(data_cfg, dict) else {}), **(opt_cfg if isinstance(opt_cfg, dict) else {})}
+                sensors_config[sensor_type] = merged
+            else:
+                # Non-dict legacy boolean style; options wins if present
+                sensors_config[sensor_type] = sensors_from_options.get(sensor_type, sensors_from_data.get(sensor_type))
         
         # Set default intervals for each sensor type
         default_intervals = {
@@ -110,6 +126,9 @@ class ISPHealthDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         for sensor_type, sensor_data in sensors_config.items():
             if isinstance(sensor_data, dict):
                 sensor_data.setdefault("interval", default_intervals.get(sensor_type, 60))
+                if sensor_type == "dns_config":
+                    # Ensure custom_dns key exists
+                    sensor_data.setdefault("custom_dns", "")
             else:
                 sensors_config[sensor_type] = {
                     "enabled": sensor_data,
