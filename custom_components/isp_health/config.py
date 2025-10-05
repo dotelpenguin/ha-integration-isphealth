@@ -17,6 +17,11 @@ class SensorConfig(BaseModel):
     interval: int = Field(ge=30, le=3600)  # 30 seconds to 1 hour
 
 
+class DNSConfig(SensorConfig):
+    """Configuration for DNS config sensor"""
+    custom_dns: str = ""
+
+
 class LatencyConfig(SensorConfig):
     """Configuration for latency sensor"""
     targets: List[str] = Field(default_factory=lambda: ["8.8.8.8", "1.1.1.1"])
@@ -46,7 +51,7 @@ class RouteStabilityConfig(SensorConfig):
 class SensorsConfig(BaseModel):
     """Configuration for all sensors"""
     ip_info: SensorConfig = Field(default_factory=lambda: SensorConfig(interval=60))
-    dns_config: SensorConfig = Field(default_factory=lambda: SensorConfig(interval=60))
+    dns_config: DNSConfig = Field(default_factory=lambda: DNSConfig(interval=60))
     latency: LatencyConfig = Field(default_factory=lambda: LatencyConfig(interval=60))
     packet_loss: SensorConfig = Field(default_factory=lambda: SensorConfig(interval=120))
     jitter: SensorConfig = Field(default_factory=lambda: SensorConfig(interval=120))
