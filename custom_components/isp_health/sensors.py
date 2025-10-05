@@ -1,6 +1,7 @@
 """Sensor implementation classes for ISP Health Monitor."""
 
 import asyncio
+import os
 import logging
 import subprocess
 import time
@@ -8,6 +9,7 @@ from typing import Dict, Any, List, Optional
 import speedtest
 import dns.resolver
 import dns.exception
+import aiohttp
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +63,7 @@ class DNSConfigSensor(BaseSensor):
         
         # Try multiple methods to detect real DNS servers
         methods = [
+            self._get_supervisor_dns,
             self._get_docker_host_dns,
             self._get_gateway_dns,
             self._get_systemd_resolve_dns,
@@ -87,6 +90,39 @@ class DNSConfigSensor(BaseSensor):
             logger.info(f"No real DNS detected, using fallback: {dns_servers}")
         
         return dns_servers
+
+    async def _get_supervisor_dns(self) -> List[str]:
+        """Get upstream DNS servers from Home Assistant Supervisor (if available)."""
+        try:
+            supervisor_token = os.environ.get("SUPERVISOR_TOKEN")
+            if not supervisor_token:
+                return []
+
+            # Supervisor API endpoint for DNS info
+            url = "http://supervisor/dns/info"
+            headers = {
+                "Authorization": f"Bearer {supervisor_token}",
+                "Content-Type": "application/json",
+            }
+
+            timeout = aiohttp.ClientTimeout(total=10)
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.get(url, headers=headers) as resp:
+                    if resp.status != 200:
+                        return []
+                    payload = await resp.json()
+
+            # Expected structure includes upstream servers under key 'servers'
+            data = payload.get("data") if isinstance(payload, dict) else None
+            servers = None
+            if isinstance(data, dict):
+                servers = data.get("servers") or data.get("upstream_servers")
+            if servers and isinstance(servers, list):
+                filtered = [s for s in servers if isinstance(s, str) and not self._is_container_dns(s)]
+                return filtered
+        except Exception as e:
+            logger.debug(f"Supervisor DNS query failed: {e}")
+        return []
     
     def _is_container_dns(self, dns_ip: str) -> bool:
         """Check if DNS IP is from container/internal network"""
