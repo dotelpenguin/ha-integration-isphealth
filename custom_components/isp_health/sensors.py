@@ -239,13 +239,13 @@ class DNSConfigSensor(BaseSensor):
     
     async def _test_dns_resolution(self) -> bool:
         """Test DNS resolution"""
-            try:
-                resolver = dns.resolver.Resolver()
-                resolver.timeout = 5
-                resolver.lifetime = 5
+        try:
+            resolver = dns.resolver.Resolver()
+            resolver.timeout = 5
+            resolver.lifetime = 5
             result = resolver.resolve("google.com", "A")
             return len(result) > 0
-            except Exception as e:
+        except Exception as e:
             logger.debug(f"DNS resolution test failed: {e}")
             return False
 
@@ -267,14 +267,14 @@ class LatencySensor(BaseSensor):
             
             if latencies:
                 avg_latency = sum(latencies) / len(latencies)
-            return {
+                return {
                     "average": round(avg_latency, 2),
                     "min": round(min(latencies), 2),
                     "max": round(max(latencies), 2),
-                "status": "online",
+                    "status": "online",
                     "error": None
-            }
-        else:
+                }
+            else:
                 return {
                     "average": 0,
                     "min": 0,
@@ -468,17 +468,17 @@ class ThroughputSensor(BaseSensor):
     def _run_speedtest(self) -> Optional[Dict[str, float]]:
         """Run speedtest-cli"""
         try:
-        st = speedtest.Speedtest()
-        st.get_best_server()
+            st = speedtest.Speedtest()
+            st.get_best_server()
             st.download()
             st.upload()
             results = st.results.dict()
-        return {
+            return {
                 "download": results["download"],
                 "upload": results["upload"],
                 "ping": results["ping"]
             }
-            except Exception as e:
+        except Exception as e:
             logger.error(f"Speedtest failed: {e}")
             return None
 
@@ -489,7 +489,7 @@ class DNSReliabilitySensor(BaseSensor):
     async def get_data(self) -> Dict[str, Any]:
         """Get DNS reliability"""
         try:
-        test_domains = ["google.com", "cloudflare.com", "github.com"]
+            test_domains = ["google.com", "cloudflare.com", "github.com"]
             successful_queries = 0
             total_queries = len(test_domains)
             
@@ -519,12 +519,12 @@ class DNSReliabilitySensor(BaseSensor):
     async def _test_dns_query(self, domain: str) -> bool:
         """Test DNS query for a domain"""
         try:
-        resolver = dns.resolver.Resolver()
-        resolver.timeout = 5
-        resolver.lifetime = 5
+            resolver = dns.resolver.Resolver()
+            resolver.timeout = 5
+            resolver.lifetime = 5
             result = resolver.resolve(domain, "A")
             return len(result) > 0
-            except Exception as e:
+        except Exception as e:
             logger.debug(f"DNS query failed for {domain}: {e}")
             return False
 
@@ -589,7 +589,7 @@ class RouteStabilitySensor(BaseSensor):
                 route = []
                 for line in stdout.decode('utf-8').split('\n'):
                     if 'traceroute' not in line and line.strip():
-            parts = line.split()
+                        parts = line.split()
                         if len(parts) >= 3 and parts[1] != '*':
                             route.append(parts[1])
                 return route
