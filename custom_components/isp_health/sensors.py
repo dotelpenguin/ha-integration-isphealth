@@ -32,7 +32,7 @@ class DNSConfigSensor(BaseSensor):
     async def get_data(self) -> Dict[str, Any]:
         """Get DNS configuration"""
         try:
-            dns_servers, source = await self._get_system_dns_servers()
+            dns_servers, source, method_results = await self._get_system_dns_servers()
             resolution_test = await self._test_dns_resolution()
             
             if dns_servers:
@@ -47,6 +47,12 @@ class DNSConfigSensor(BaseSensor):
                 "secondary_dns": secondary_dns,
                 "all_dns_servers": dns_servers,
                 "source": source,
+                "supervisor_dns": method_results.get("_get_supervisor_dns", []),
+                "docker_host_dns": method_results.get("_get_docker_host_dns", []),
+                "gateway_dns": method_results.get("_get_gateway_dns", []),
+                "systemd_resolve_dns": method_results.get("_get_systemd_resolve_dns", []),
+                "resolv_conf_dns": method_results.get("_get_resolv_conf_dns", []),
+                "public_fallback_dns": method_results.get("_get_common_dns_servers", []),
                 "status": "online" if resolution_test else "offline",
                 "error": None if resolution_test else "DNS resolution failed"
             }
@@ -59,10 +65,11 @@ class DNSConfigSensor(BaseSensor):
                 "error": str(e)
             }
     
-    async def _get_system_dns_servers(self) -> (List[str], str):
-        """Get upstream DNS servers (not container DNS) and the source used."""
+    async def _get_system_dns_servers(self) -> (List[str], str, Dict[str, List[str]]):
+        """Get upstream DNS servers (not container DNS), the source used, and per-method results."""
         dns_servers: List[str] = []
         source_used: str = "unknown"
+        method_results: Dict[str, List[str]] = {}
         
         # Try multiple methods to detect real DNS servers
         methods = [
@@ -77,24 +84,26 @@ class DNSConfigSensor(BaseSensor):
         for method in methods:
             try:
                 detected_dns = await method()
-                if detected_dns:
-                    # Filter out container/internal DNS
-                    filtered_dns = [dns for dns in detected_dns if not self._is_container_dns(dns)]
-                    if filtered_dns:
-                        dns_servers.extend(filtered_dns)
-                        logger.info(f"Detected DNS servers via {method.__name__}: {filtered_dns}")
-                        source_used = method.__name__
-                        break  # Use first successful method
+                filtered_dns = [dns for dns in (detected_dns or []) if not self._is_container_dns(dns)]
+                method_results[method.__name__] = filtered_dns
+                if not dns_servers and filtered_dns:
+                    # First successful method defines primary/secondary and source
+                    dns_servers.extend(filtered_dns)
+                    logger.info(f"Detected DNS servers via {method.__name__}: {filtered_dns}")
+                    source_used = method.__name__
             except Exception as e:
                 logger.debug(f"DNS detection method {method.__name__} failed: {e}")
+                method_results[method.__name__] = []
         
         # If no real DNS found, return common public DNS as fallback
         if not dns_servers:
-            dns_servers = ["8.8.8.8", "1.1.1.1"]
+            fallback = ["8.8.8.8", "1.1.1.1"]
+            dns_servers = fallback
             logger.info(f"No real DNS detected, using fallback: {dns_servers}")
             source_used = "public_fallback"
+            method_results["_get_common_dns_servers"] = fallback
         
-        return dns_servers, source_used
+        return dns_servers, source_used, method_results
 
     async def _get_supervisor_dns(self) -> List[str]:
         """Get upstream DNS servers from Home Assistant Supervisor (if available)."""
@@ -221,7 +230,7 @@ class DNSConfigSensor(BaseSensor):
             return dns_servers
         except Exception:
             pass
-        return []
+            return []
     
     async def _get_common_dns_servers(self) -> List[str]:
         """Return common public DNS servers as fallback"""
@@ -230,13 +239,13 @@ class DNSConfigSensor(BaseSensor):
     
     async def _test_dns_resolution(self) -> bool:
         """Test DNS resolution"""
-        try:
-            resolver = dns.resolver.Resolver()
-            resolver.timeout = 5
-            resolver.lifetime = 5
+            try:
+                resolver = dns.resolver.Resolver()
+                resolver.timeout = 5
+                resolver.lifetime = 5
             result = resolver.resolve("google.com", "A")
             return len(result) > 0
-        except Exception as e:
+            except Exception as e:
             logger.debug(f"DNS resolution test failed: {e}")
             return False
 
@@ -258,14 +267,14 @@ class LatencySensor(BaseSensor):
             
             if latencies:
                 avg_latency = sum(latencies) / len(latencies)
-                return {
+            return {
                     "average": round(avg_latency, 2),
                     "min": round(min(latencies), 2),
                     "max": round(max(latencies), 2),
-                    "status": "online",
+                "status": "online",
                     "error": None
-                }
-            else:
+            }
+        else:
                 return {
                     "average": 0,
                     "min": 0,
@@ -459,17 +468,17 @@ class ThroughputSensor(BaseSensor):
     def _run_speedtest(self) -> Optional[Dict[str, float]]:
         """Run speedtest-cli"""
         try:
-            st = speedtest.Speedtest()
-            st.get_best_server()
+        st = speedtest.Speedtest()
+        st.get_best_server()
             st.download()
             st.upload()
             results = st.results.dict()
-            return {
+        return {
                 "download": results["download"],
                 "upload": results["upload"],
                 "ping": results["ping"]
             }
-        except Exception as e:
+            except Exception as e:
             logger.error(f"Speedtest failed: {e}")
             return None
 
@@ -480,7 +489,7 @@ class DNSReliabilitySensor(BaseSensor):
     async def get_data(self) -> Dict[str, Any]:
         """Get DNS reliability"""
         try:
-            test_domains = ["google.com", "cloudflare.com", "github.com"]
+        test_domains = ["google.com", "cloudflare.com", "github.com"]
             successful_queries = 0
             total_queries = len(test_domains)
             
@@ -510,12 +519,12 @@ class DNSReliabilitySensor(BaseSensor):
     async def _test_dns_query(self, domain: str) -> bool:
         """Test DNS query for a domain"""
         try:
-            resolver = dns.resolver.Resolver()
-            resolver.timeout = 5
-            resolver.lifetime = 5
+        resolver = dns.resolver.Resolver()
+        resolver.timeout = 5
+        resolver.lifetime = 5
             result = resolver.resolve(domain, "A")
             return len(result) > 0
-        except Exception as e:
+            except Exception as e:
             logger.debug(f"DNS query failed for {domain}: {e}")
             return False
 
@@ -580,7 +589,7 @@ class RouteStabilitySensor(BaseSensor):
                 route = []
                 for line in stdout.decode('utf-8').split('\n'):
                     if 'traceroute' not in line and line.strip():
-                        parts = line.split()
+            parts = line.split()
                         if len(parts) >= 3 and parts[1] != '*':
                             route.append(parts[1])
                 return route
