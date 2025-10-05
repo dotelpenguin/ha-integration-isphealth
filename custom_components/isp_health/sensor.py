@@ -77,7 +77,7 @@ class ISPHealthSensor(CoordinatorEntity[ISPHealthDataUpdateCoordinator], SensorE
             "name": "ISP Health Monitor",
             "manufacturer": "ISP Health Monitor",
             "model": "Network Monitor",
-            "sw_version": "1.0.8-beta.2",
+            "sw_version": "1.0.8-beta.3",
             "hw_version": "Python 3.x",
             "configuration_url": "https://github.com/dotelpenguin/ha-integration-isphealth",
         }
@@ -152,6 +152,7 @@ class ISPHealthSensor(CoordinatorEntity[ISPHealthDataUpdateCoordinator], SensorE
                 "primary_dns": sensor_data.get("primary_dns"),
                 "secondary_dns": sensor_data.get("secondary_dns"),
                 "all_dns_servers": sensor_data.get("all_dns_servers", []),
+                "source": sensor_data.get("source"),
                 "resolution_test": sensor_data.get("resolution_test", {}),
             })
         elif self._sensor_type == "latency":
