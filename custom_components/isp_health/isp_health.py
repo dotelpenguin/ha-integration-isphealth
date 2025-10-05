@@ -18,8 +18,9 @@ logger = logging.getLogger(__name__)
 class ISPHealthMonitor:
     """Main ISP Health Monitor class"""
     
-    def __init__(self, config: Config):
+    def __init__(self, hass, config: Config):
         self.config = config
+        self.hass = hass
         # Convert Pydantic models to dictionaries for IPInfoManager
         ip_config_dict = {k: v.model_dump() for k, v in config.ip_info_config.items()}
         self.ip_info_manager = IPInfoManager(ip_config_dict)
@@ -31,31 +32,31 @@ class ISPHealthMonitor:
         
         # DNS Configuration Sensor
         if self.config.sensors.dns_config.enabled:
-            sensors["dns_config"] = DNSConfigSensor(self.config.sensors.dns_config.dict())
+            sensors["dns_config"] = DNSConfigSensor(self.hass, self.config.sensors.dns_config.dict())
         
         # Latency Sensor
         if self.config.sensors.latency.enabled:
-            sensors["latency"] = LatencySensor(self.config.sensors.latency.dict())
+            sensors["latency"] = LatencySensor(self.hass, self.config.sensors.latency.dict())
         
         # Packet Loss Sensor
         if self.config.sensors.packet_loss.enabled:
-            sensors["packet_loss"] = PacketLossSensor(self.config.sensors.packet_loss.dict())
+            sensors["packet_loss"] = PacketLossSensor(self.hass, self.config.sensors.packet_loss.dict())
         
         # Jitter Sensor
         if self.config.sensors.jitter.enabled:
-            sensors["jitter"] = JitterSensor(self.config.sensors.jitter.dict())
+            sensors["jitter"] = JitterSensor(self.hass, self.config.sensors.jitter.dict())
         
         # Throughput Sensor
         if self.config.sensors.throughput.enabled:
-            sensors["throughput"] = ThroughputSensor(self.config.sensors.throughput.dict())
+            sensors["throughput"] = ThroughputSensor(self.hass, self.config.sensors.throughput.dict())
         
         # DNS Reliability Sensor
         if self.config.sensors.dns_reliability.enabled:
-            sensors["dns_reliability"] = DNSReliabilitySensor(self.config.sensors.dns_reliability.dict())
+            sensors["dns_reliability"] = DNSReliabilitySensor(self.hass, self.config.sensors.dns_reliability.dict())
         
         # Route Stability Sensor
         if self.config.sensors.route_stability.enabled:
-            sensors["route_stability"] = RouteStabilitySensor(self.config.sensors.route_stability.dict())
+            sensors["route_stability"] = RouteStabilitySensor(self.hass, self.config.sensors.route_stability.dict())
         
         return sensors
     

@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from datetime import datetime, timedelta
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import CONF_UPDATE_INTERVAL, CONF_IP_INFO_SOURCE, CONF_IP_INFO_TOKEN, DOMAIN
 
@@ -50,7 +49,7 @@ class ISPHealthDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER.info("Successfully created Config object")
             
             # Create monitor
-            monitor = ISPHealthMonitor(config)
+            monitor = ISPHealthMonitor(self.hass, config)
             _LOGGER.info("Successfully created ISPHealthMonitor")
             
             # Get all sensor data

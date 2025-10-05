@@ -17,7 +17,8 @@ logger = logging.getLogger(__name__)
 class BaseSensor:
     """Base class for all ISP health sensors."""
     
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, hass, config: Dict[str, Any]):
+        self.hass = hass
         self.config = config
         self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
     
@@ -119,23 +120,21 @@ class DNSConfigSensor(BaseSensor):
     async def _get_supervisor_dns(self) -> List[str]:
         """Get upstream DNS servers from Home Assistant Supervisor (if available)."""
         try:
-            supervisor_token = os.environ.get("SUPERVISOR_TOKEN")
-            if not supervisor_token:
+            # Prefer hassio proxy if available in HA OS/Supervised
+            if self.hass and hasattr(self.hass, "components") and hasattr(self.hass.components, "hassio"):
+                try:
+                    payload = await self.hass.components.hassio.async_send_command({
+                        "method": "GET",
+                        "path": "/dns/info",
+                    })
+                except Exception as e:
+                    logger.debug(f"Hassio proxy call failed: {e}")
+                    payload = None
+            else:
+                payload = None
+            
+            if payload is None:
                 return []
-
-            # Supervisor API endpoint for DNS info
-            url = "http://supervisor/dns/info"
-            headers = {
-                "Authorization": f"Bearer {supervisor_token}",
-                "Content-Type": "application/json",
-            }
-
-            timeout = aiohttp.ClientTimeout(total=10)
-            async with aiohttp.ClientSession(timeout=timeout) as session:
-                async with session.get(url, headers=headers) as resp:
-                    if resp.status != 200:
-                        return []
-                    payload = await resp.json()
 
             # Expected structure includes upstream servers under key 'servers'
             data = payload.get("data") if isinstance(payload, dict) else None
