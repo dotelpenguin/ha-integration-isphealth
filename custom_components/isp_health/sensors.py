@@ -546,8 +546,8 @@ class DNSReliabilitySensor(BaseSensor):
 class RouteStabilitySensor(BaseSensor):
     """Route stability sensor."""
     
-    def __init__(self, config: Dict[str, Any]):
-        super().__init__(config)
+    def __init__(self, hass, config: Dict[str, Any]):
+        super().__init__(hass, config)
         self.route_history = []
         self.max_history = 10
     
