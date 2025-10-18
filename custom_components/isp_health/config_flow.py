@@ -25,8 +25,8 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-# Single step configuration
-STEP_USER_DATA_SCHEMA = vol.Schema(
+# Step 1: Basic configuration
+STEP_BASIC_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_UPDATE_INTERVAL, default=DEFAULT_UPDATE_INTERVAL): vol.All(
             vol.Coerce(int), vol.Range(min=30, max=600)
@@ -35,7 +35,12 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
             list(IP_INFO_SOURCES.keys())
         ),
         vol.Optional(CONF_IP_INFO_TOKEN, default=""): str,
-        # Core sensors (always enabled)
+    }
+)
+
+# Step 2: Core sensors configuration
+STEP_CORE_SENSORS_SCHEMA = vol.Schema(
+    {
         vol.Required("ip_info_interval", default=60): vol.All(
             vol.Coerce(int), vol.Range(min=30, max=600)
         ),
@@ -43,7 +48,12 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
             vol.Coerce(int), vol.Range(min=30, max=600)
         ),
         vol.Optional("custom_dns", default=""): str,
-        # Extended sensors
+    }
+)
+
+# Step 3: Extended sensors configuration
+STEP_EXTENDED_SENSORS_SCHEMA = vol.Schema(
+    {
         vol.Required("enable_latency", default=True): bool,
         vol.Required("latency_interval", default=60): vol.All(
             vol.Coerce(int), vol.Range(min=30, max=600)
@@ -56,11 +66,25 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         vol.Required("jitter_interval", default=120): vol.All(
             vol.Coerce(int), vol.Range(min=60, max=1800)
         ),
+        vol.Required("enable_dns_reliability", default=True): bool,
+        vol.Required("dns_reliability_interval", default=180): vol.All(
+            vol.Coerce(int), vol.Range(min=60, max=1800)
+        ),
+        vol.Required("enable_route_stability", default=False): bool,
+        vol.Required("route_stability_interval", default=1800): vol.All(
+            vol.Coerce(int), vol.Range(min=300, max=7200)
+        ),
+    }
+)
+
+# Step 4: Throughput sensor configuration
+STEP_THROUGHPUT_SCHEMA = vol.Schema(
+    {
         vol.Required("enable_throughput", default=False): bool,
         vol.Required("throughput_interval", default=3600): vol.All(
             vol.Coerce(int), vol.Range(min=3600, max=86400)
         ),
-        # Throughput test configuration
+        # Test configuration
         vol.Required("test_download", default=True): bool,
         vol.Required("test_upload", default=True): bool,
         vol.Required("test_ping", default=True): bool,
@@ -75,14 +99,6 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         # Organization filtering
         vol.Optional("organization_pattern", default=""): str,
         vol.Required("require_organization_match", default=False): bool,
-        vol.Required("enable_dns_reliability", default=True): bool,
-        vol.Required("dns_reliability_interval", default=180): vol.All(
-            vol.Coerce(int), vol.Range(min=60, max=1800)
-        ),
-        vol.Required("enable_route_stability", default=False): bool,
-        vol.Required("route_stability_interval", default=1800): vol.All(
-            vol.Coerce(int), vol.Range(min=300, max=7200)
-        ),
     }
 )
 
@@ -92,35 +108,99 @@ class ISPHealthConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
+    def __init__(self):
+        """Initialize the config flow."""
+        super().__init__()
+        self._config_data = {}
+
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ):
-        """Handle the initial step."""
+        """Handle the basic configuration step."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            # Create sensor configuration
-            sensors_config = self._create_sensors_config(user_input)
-            
-            # Create the entry
-            return self.async_create_entry(
-                title="ISP Health Monitor",
-                data={
-                    **user_input,
-                    CONF_SENSORS: sensors_config,
-                },
-            )
+            self._config_data.update(user_input)
+            return await self.async_step_core_sensors()
 
         return self.async_show_form(
             step_id="user",
-            data_schema=STEP_USER_DATA_SCHEMA,
+            data_schema=STEP_BASIC_DATA_SCHEMA,
             errors=errors,
             description_placeholders={
                 "sources": ", ".join(IP_INFO_SOURCES.values()),
                 "note": "All features work without API keys. Tokens only provide higher rate limits.",
                 "rate_limits": "Rate Limits: ip-api.com (45 req/min), ipinfo.io (50k req/month free), ipgeolocation.io (requires API key)",
+            },
+        )
+
+    async def async_step_core_sensors(
+        self, user_input: dict[str, Any] | None = None
+    ):
+        """Handle the core sensors configuration step."""
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            self._config_data.update(user_input)
+            return await self.async_step_extended_sensors()
+
+        return self.async_show_form(
+            step_id="core_sensors",
+            data_schema=STEP_CORE_SENSORS_SCHEMA,
+            errors=errors,
+            description_placeholders={
+                "note": "Core sensors are always enabled and provide basic network information.",
+            },
+        )
+
+    async def async_step_extended_sensors(
+        self, user_input: dict[str, Any] | None = None
+    ):
+        """Handle the extended sensors configuration step."""
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            self._config_data.update(user_input)
+            return await self.async_step_throughput()
+
+        return self.async_show_form(
+            step_id="extended_sensors",
+            data_schema=STEP_EXTENDED_SENSORS_SCHEMA,
+            errors=errors,
+            description_placeholders={
+                "note": "Extended sensors provide detailed network analysis. Enable only what you need.",
+            },
+        )
+
+    async def async_step_throughput(
+        self, user_input: dict[str, Any] | None = None
+    ):
+        """Handle the throughput sensor configuration step."""
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            self._config_data.update(user_input)
+            
+            # Create sensor configuration
+            sensors_config = self._create_sensors_config(self._config_data)
+            
+            # Create the entry
+            return self.async_create_entry(
+                title="ISP Health Monitor",
+                data={
+                    **self._config_data,
+                    CONF_SENSORS: sensors_config,
+                },
+            )
+
+        return self.async_show_form(
+            step_id="throughput",
+            data_schema=STEP_THROUGHPUT_SCHEMA,
+            errors=errors,
+            description_placeholders={
                 "throughput_note": "Speed testing uses bandwidth and should be run less frequently.",
-                "route_note": "Route analysis is advanced and may take longer to complete."
+                "time_window_note": "Configure time windows to minimize bandwidth usage during peak hours.",
+                "organization_note": "Use regex patterns to control when speed tests run based on your ISP.",
             },
         )
 
