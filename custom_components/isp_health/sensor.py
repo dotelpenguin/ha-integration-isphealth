@@ -135,8 +135,11 @@ class ISPHealthSensor(CoordinatorEntity[ISPHealthDataUpdateCoordinator], SensorE
         
         # Add sensor-specific attributes
         if self._sensor_type == "ip_info":
+            hostname_value = sensor_data.get("hostname")
+            _LOGGER.info(f"IP info sensor hostname: '{hostname_value}' (type: {type(hostname_value)})")
+            _LOGGER.info(f"Full IP info sensor data: {sensor_data}")
             attrs.update({
-                "hostname": sensor_data.get("hostname"),
+                "hostname": hostname_value,
                 "city": sensor_data.get("city"),
                 "region": sensor_data.get("region"),
                 "country": sensor_data.get("country"),

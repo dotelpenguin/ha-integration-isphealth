@@ -72,8 +72,10 @@ class IPInfoIOProvider(IPInfoProvider):
         
         # Handle null/empty values
         hostname = raw_data.get("hostname")
+        logger.info(f"ipinfo.io raw hostname: '{hostname}' (type: {type(hostname)})")
         if not hostname or hostname == "":
             hostname = None
+        logger.info(f"ipinfo.io processed hostname: '{hostname}'")
             
         return {
             "ip": raw_data.get("ip"),
@@ -130,8 +132,10 @@ class IPAPIProvider(IPInfoProvider):
         """Normalize ip-api.com data with data quality handling"""
         # Handle null/empty values
         hostname = raw_data.get("reverse")
+        logger.info(f"ip-api.com raw hostname: '{hostname}' (type: {type(hostname)})")
         if not hostname or hostname == "":
             hostname = None
+        logger.info(f"ip-api.com processed hostname: '{hostname}'")
             
         return {
             "ip": raw_data.get("query"),
