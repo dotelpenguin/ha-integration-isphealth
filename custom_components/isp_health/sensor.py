@@ -146,6 +146,7 @@ class ISPHealthSensor(CoordinatorEntity[ISPHealthDataUpdateCoordinator], SensorE
                 "postal_code": sensor_data.get("postal_code"),
                 "timezone": sensor_data.get("timezone"),
                 "source": sensor_data.get("source"),
+                "data_quality": sensor_data.get("data_quality", {}),
             })
         elif self._sensor_type == "dns_config":
             attrs.update({

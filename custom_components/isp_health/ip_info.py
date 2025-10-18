@@ -65,14 +65,19 @@ class IPInfoIOProvider(IPInfoProvider):
             raise
     
     def normalize_data(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Normalize ipinfo.io data"""
+        """Normalize ipinfo.io data with data quality handling"""
         # Parse location coordinates
         loc = raw_data.get("loc", "").split(",")
         lat, lon = (float(loc[0]), float(loc[1])) if len(loc) == 2 else (None, None)
         
+        # Handle null/empty values
+        hostname = raw_data.get("hostname")
+        if not hostname or hostname == "":
+            hostname = None
+            
         return {
             "ip": raw_data.get("ip"),
-            "hostname": raw_data.get("hostname"),
+            "hostname": hostname,
             "city": raw_data.get("city"),
             "region": raw_data.get("region"),
             "country": raw_data.get("country"),
@@ -82,7 +87,13 @@ class IPInfoIOProvider(IPInfoProvider):
             "postal_code": raw_data.get("postal"),
             "timezone": raw_data.get("timezone"),
             "source": "ipinfo.io",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
+            "data_quality": {
+                "hostname_available": hostname is not None,
+                "coordinates_available": lat is not None and lon is not None,
+                "organization_available": raw_data.get("org") is not None,
+                "postal_code_available": raw_data.get("postal") is not None
+            }
         }
 
 
@@ -116,10 +127,15 @@ class IPAPIProvider(IPInfoProvider):
             raise
     
     def normalize_data(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Normalize ip-api.com data"""
+        """Normalize ip-api.com data with data quality handling"""
+        # Handle null/empty values
+        hostname = raw_data.get("reverse")
+        if not hostname or hostname == "":
+            hostname = None
+            
         return {
             "ip": raw_data.get("query"),
-            "hostname": raw_data.get("reverse"),
+            "hostname": hostname,
             "city": raw_data.get("city"),
             "region": raw_data.get("regionName"),
             "country": raw_data.get("country"),
@@ -129,7 +145,13 @@ class IPAPIProvider(IPInfoProvider):
             "postal_code": raw_data.get("zip"),
             "timezone": raw_data.get("timezone"),
             "source": "ip-api.com",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
+            "data_quality": {
+                "hostname_available": hostname is not None,
+                "coordinates_available": raw_data.get("lat") is not None and raw_data.get("lon") is not None,
+                "organization_available": raw_data.get("isp") is not None,
+                "postal_code_available": raw_data.get("zip") is not None
+            }
         }
 
 
@@ -161,10 +183,18 @@ class IPGeolocationProvider(IPInfoProvider):
             raise
     
     def normalize_data(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Normalize ipgeolocation.io data"""
+        """Normalize ipgeolocation.io data with data quality handling"""
+        # Handle null/empty values
+        hostname = raw_data.get("hostname")
+        if not hostname or hostname == "":
+            hostname = None
+            
+        # Handle timezone object
+        timezone = raw_data.get("time_zone", {}).get("name") if isinstance(raw_data.get("time_zone"), dict) else raw_data.get("time_zone")
+        
         return {
             "ip": raw_data.get("ip"),
-            "hostname": raw_data.get("hostname"),
+            "hostname": hostname,
             "city": raw_data.get("city"),
             "region": raw_data.get("state_prov"),
             "country": raw_data.get("country_name"),
@@ -172,9 +202,15 @@ class IPGeolocationProvider(IPInfoProvider):
             "longitude": raw_data.get("longitude"),
             "organization": raw_data.get("organization"),
             "postal_code": raw_data.get("zipcode"),
-            "timezone": raw_data.get("time_zone", {}).get("name"),
+            "timezone": timezone,
             "source": "ipgeolocation.io",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
+            "data_quality": {
+                "hostname_available": hostname is not None,
+                "coordinates_available": raw_data.get("latitude") is not None and raw_data.get("longitude") is not None,
+                "organization_available": raw_data.get("organization") is not None,
+                "postal_code_available": raw_data.get("zipcode") is not None
+            }
         }
 
 
