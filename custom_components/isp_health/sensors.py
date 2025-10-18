@@ -237,6 +237,17 @@ class DNSConfigSensor(BaseSensor):
     async def _get_resolv_conf_dns(self) -> List[str]:
         """Get DNS from resolv.conf (last resort)"""
         try:
+            # Run file reading in thread executor to avoid blocking
+            loop = asyncio.get_event_loop()
+            dns_servers = await loop.run_in_executor(None, self._sync_read_resolv_conf)
+            return dns_servers
+        except Exception:
+            pass
+        return []
+    
+    def _sync_read_resolv_conf(self) -> List[str]:
+        """Synchronous resolv.conf reading (runs in thread executor)"""
+        try:
             with open('/etc/resolv.conf', 'r') as f:
                 dns_servers = []
                 for line in f:
@@ -246,7 +257,6 @@ class DNSConfigSensor(BaseSensor):
                             dns_servers.append(dns_ip)
             return dns_servers
         except Exception:
-            pass
             return []
     
     async def _get_common_dns_servers(self) -> List[str]:
@@ -256,6 +266,17 @@ class DNSConfigSensor(BaseSensor):
     
     async def _test_dns_resolution(self, servers: List[str] | None = None) -> bool:
         """Test DNS resolution using provided servers if any."""
+        try:
+            # Run DNS resolution in thread executor to avoid blocking
+            loop = asyncio.get_event_loop()
+            result = await loop.run_in_executor(None, self._sync_dns_resolution, servers)
+            return result
+        except Exception as e:
+            logger.debug(f"DNS resolution test failed: {e}")
+            return False
+    
+    def _sync_dns_resolution(self, servers: List[str] | None = None) -> bool:
+        """Synchronous DNS resolution (runs in thread executor)"""
         try:
             resolver = dns.resolver.Resolver()
             resolver.timeout = 5
@@ -655,6 +676,17 @@ class DNSReliabilitySensor(BaseSensor):
     
     async def _test_dns_query(self, domain: str) -> bool:
         """Test DNS query for a domain"""
+        try:
+            # Run DNS query in thread executor to avoid blocking
+            loop = asyncio.get_event_loop()
+            result = await loop.run_in_executor(None, self._sync_dns_query, domain)
+            return result
+        except Exception as e:
+            logger.debug(f"DNS query failed for {domain}: {e}")
+            return False
+    
+    def _sync_dns_query(self, domain: str) -> bool:
+        """Synchronous DNS query (runs in thread executor)"""
         try:
             resolver = dns.resolver.Resolver()
             resolver.timeout = 5
