@@ -7,8 +7,6 @@ import subprocess
 import time
 from typing import Dict, Any, List, Optional
 import speedtest
-import dns.resolver
-import dns.exception
 import aiohttp
 
 logger = logging.getLogger(__name__)
@@ -278,6 +276,8 @@ class DNSConfigSensor(BaseSensor):
     def _sync_dns_resolution(self, servers: List[str] | None = None) -> bool:
         """Synchronous DNS resolution (runs in thread executor)"""
         try:
+            # Lazy import to avoid blocking calls during module load
+            import dns.resolver
             resolver = dns.resolver.Resolver()
             resolver.timeout = 5
             resolver.lifetime = 5
@@ -688,6 +688,8 @@ class DNSReliabilitySensor(BaseSensor):
     def _sync_dns_query(self, domain: str) -> bool:
         """Synchronous DNS query (runs in thread executor)"""
         try:
+            # Lazy import to avoid blocking calls during module load
+            import dns.resolver
             resolver = dns.resolver.Resolver()
             resolver.timeout = 5
             resolver.lifetime = 5
