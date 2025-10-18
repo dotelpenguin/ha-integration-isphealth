@@ -179,8 +179,11 @@ class ISPHealthSensor(CoordinatorEntity[ISPHealthDataUpdateCoordinator], SensorE
         elif self._sensor_type == "throughput":
             attrs.update({
                 "upload_mbps": sensor_data.get("upload_mbps"),
+                "ping": sensor_data.get("ping"),
                 "server": sensor_data.get("server", {}),
                 "test_type": sensor_data.get("test_type"),
+                "tests_performed": sensor_data.get("tests_performed", {}),
+                "reason": sensor_data.get("reason"),
             })
         elif self._sensor_type == "dns_reliability":
             attrs.update({

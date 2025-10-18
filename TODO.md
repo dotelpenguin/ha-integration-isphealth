@@ -16,9 +16,9 @@
 - [ ] **Enhanced Alerting** - Create threshold-based alerting system with configurable conditions and notifications
 - [ ] **Multi-Target Configuration** - Enhance latency/packet loss sensors with multiple target support and geographic selection
 - [ ] **ISP Comparison** - Add ISP identification and performance comparison against regional benchmarks
-- [ ] **Speed Test Window** - Configure scheduled time window for speed tests, to minimize downloads
-- [ ] **Seperate upload/download** - Configure uploads and download speed tests seperatly
-- [ ] **Regex patterns on speed test based on organization** - Example allow only speed tests if organization matches defined value
+- [x] **Speed Test Window** - Configure scheduled time window for speed tests, to minimize downloads
+- [x] **Seperate upload/download** - Configure uploads and download speed tests seperatly
+- [x] **Regex patterns on speed test based on organization** - Example allow only speed tests if organization matches defined value
 
 ## Code Quality & Infrastructure
 
@@ -49,7 +49,7 @@
 
 ## Progress Tracking
 
-- **Total Items**: 20
-- **Completed**: 0
+- **Total Items**: 23
+- **Completed**: 3
 - **In Progress**: 0
 - **Pending**: 20

@@ -33,6 +33,20 @@ class ThroughputConfig(SensorConfig):
     test_multiple_servers: bool = Field(default=False)
     max_servers: int = Field(default=3, ge=1, le=10)
     timeout: int = Field(default=30, ge=10, le=120)
+    
+    # New features for v1.2.0-beta
+    test_download: bool = Field(default=True)  # Enable/disable download testing
+    test_upload: bool = Field(default=True)    # Enable/disable upload testing
+    test_ping: bool = Field(default=True)      # Enable/disable ping testing
+    
+    # Time window configuration
+    allowed_hours_start: int = Field(default=0, ge=0, le=23)   # Start hour (0-23)
+    allowed_hours_end: int = Field(default=23, ge=0, le=23)    # End hour (0-23)
+    allowed_days: List[int] = Field(default_factory=lambda: list(range(7)))  # Days of week (0=Monday, 6=Sunday)
+    
+    # Organization-based filtering
+    organization_pattern: Optional[str] = Field(default=None)  # Regex pattern for ISP organization
+    require_organization_match: bool = Field(default=False)    # Only test if organization matches
 
 
 class DNSReliabilityConfig(SensorConfig):

@@ -60,6 +60,21 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         vol.Required("throughput_interval", default=3600): vol.All(
             vol.Coerce(int), vol.Range(min=3600, max=86400)
         ),
+        # Throughput test configuration
+        vol.Required("test_download", default=True): bool,
+        vol.Required("test_upload", default=True): bool,
+        vol.Required("test_ping", default=True): bool,
+        # Time window configuration
+        vol.Required("allowed_hours_start", default=0): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=23)
+        ),
+        vol.Required("allowed_hours_end", default=23): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=23)
+        ),
+        vol.Optional("allowed_days", default="0,1,2,3,4,5,6"): str,  # Comma-separated days (0=Monday)
+        # Organization filtering
+        vol.Optional("organization_pattern", default=""): str,
+        vol.Required("require_organization_match", default=False): bool,
         vol.Required("enable_dns_reliability", default=True): bool,
         vol.Required("dns_reliability_interval", default=180): vol.All(
             vol.Coerce(int), vol.Range(min=60, max=1800)
@@ -138,9 +153,27 @@ class ISPHealthConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             "enabled": user_input.get("enable_jitter", True),
             "interval": user_input.get("jitter_interval", 120)
         }
+        # Parse allowed days from comma-separated string
+        allowed_days_str = user_input.get("allowed_days", "0,1,2,3,4,5,6")
+        try:
+            allowed_days = [int(day.strip()) for day in allowed_days_str.split(",") if day.strip()]
+        except ValueError:
+            allowed_days = list(range(7))  # Default to all days if parsing fails
+        
         sensors_config["throughput"] = {
             "enabled": user_input.get("enable_throughput", False),
-            "interval": user_input.get("throughput_interval", 3600)
+            "interval": user_input.get("throughput_interval", 3600),
+            # Test configuration
+            "test_download": user_input.get("test_download", True),
+            "test_upload": user_input.get("test_upload", True),
+            "test_ping": user_input.get("test_ping", True),
+            # Time window configuration
+            "allowed_hours_start": user_input.get("allowed_hours_start", 0),
+            "allowed_hours_end": user_input.get("allowed_hours_end", 23),
+            "allowed_days": allowed_days,
+            # Organization filtering
+            "organization_pattern": user_input.get("organization_pattern", ""),
+            "require_organization_match": user_input.get("require_organization_match", False),
         }
         sensors_config["dns_reliability"] = {
             "enabled": user_input.get("enable_dns_reliability", True),

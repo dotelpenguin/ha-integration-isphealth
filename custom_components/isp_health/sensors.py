@@ -449,56 +449,174 @@ class JitterSensor(BaseSensor):
 
 
 class ThroughputSensor(BaseSensor):
-    """Network throughput sensor."""
+    """Network throughput sensor with advanced configuration options."""
     
     async def get_data(self) -> Dict[str, Any]:
-        """Get network throughput"""
+        """Get network throughput with time window and organization filtering"""
         try:
+            # Check if we're in an allowed time window
+            if not self._is_in_allowed_time_window():
+                return {
+                    "download_mbps": None,
+                    "upload_mbps": None,
+                    "ping": None,
+                    "status": "skipped",
+                    "error": None,
+                    "reason": "Outside allowed time window"
+                }
+            
+            # Check organization pattern if required
+            if not self._check_organization_pattern():
+                return {
+                    "download_mbps": None,
+                    "upload_mbps": None,
+                    "ping": None,
+                    "status": "skipped",
+                    "error": None,
+                    "reason": "Organization pattern not matched"
+                }
+            
             # Run speedtest in thread executor to avoid blocking
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(None, self._run_speedtest)
             
             if result:
                 return {
-                    "download_mbps": round(result["download"] / 1000000, 2),
-                    "upload_mbps": round(result["upload"] / 1000000, 2),
-                    "ping": round(result["ping"], 2),
+                    "download_mbps": round(result["download"] / 1000000, 2) if result.get("download") else None,
+                    "upload_mbps": round(result["upload"] / 1000000, 2) if result.get("upload") else None,
+                    "ping": round(result["ping"], 2) if result.get("ping") else None,
                     "status": "online",
-                    "error": None
+                    "error": None,
+                    "tests_performed": {
+                        "download": result.get("download") is not None,
+                        "upload": result.get("upload") is not None,
+                        "ping": result.get("ping") is not None
+                    }
                 }
             else:
                 return {
-                    "download_mbps": 0,
-                    "upload_mbps": 0,
-                    "ping": 0,
+                    "download_mbps": None,
+                    "upload_mbps": None,
+                    "ping": None,
                     "status": "offline",
                     "error": "Speedtest failed"
                 }
         except Exception as e:
             self.logger.error(f"Error measuring throughput: {e}")
             return {
-                "download_mbps": 0,
-                "upload_mbps": 0,
-                "ping": 0,
+                "download_mbps": None,
+                "upload_mbps": None,
+                "ping": None,
                 "status": "offline",
                 "error": str(e)
             }
     
     def _run_speedtest(self) -> Optional[Dict[str, float]]:
-        """Run speedtest-cli"""
+        """Run speedtest-cli with selective testing based on configuration"""
         try:
             st = speedtest.Speedtest()
             st.get_best_server()
-            st.download()
-            st.upload()
-            results = st.results.dict()
-            return {
-                "download": results["download"],
-                "upload": results["upload"],
-                "ping": results["ping"]
-            }
+            
+            results = {}
+            
+            # Only run tests that are enabled in configuration
+            if self.config.get("test_download", True):
+                st.download()
+                results["download"] = st.results.download
+            else:
+                results["download"] = None
+                
+            if self.config.get("test_upload", True):
+                st.upload()
+                results["upload"] = st.results.upload
+            else:
+                results["upload"] = None
+                
+            if self.config.get("test_ping", True):
+                results["ping"] = st.results.ping
+            else:
+                results["ping"] = None
+            
+            return results
         except Exception as e:
             logger.error(f"Speedtest failed: {e}")
+            return None
+    
+    def _is_in_allowed_time_window(self) -> bool:
+        """Check if current time is within allowed testing window"""
+        from datetime import datetime
+        
+        now = datetime.now()
+        current_hour = now.hour
+        current_day = now.weekday()  # 0=Monday, 6=Sunday
+        
+        # Check if current day is allowed
+        allowed_days = self.config.get("allowed_days", list(range(7)))
+        if current_day not in allowed_days:
+            return False
+        
+        # Check if current hour is within allowed range
+        start_hour = self.config.get("allowed_hours_start", 0)
+        end_hour = self.config.get("allowed_hours_end", 23)
+        
+        # Handle case where end hour is before start hour (e.g., 22-6 for overnight)
+        if start_hour <= end_hour:
+            return start_hour <= current_hour <= end_hour
+        else:
+            # Overnight window (e.g., 22:00 to 06:00)
+            return current_hour >= start_hour or current_hour <= end_hour
+    
+    def _check_organization_pattern(self) -> bool:
+        """Check if current ISP organization matches the required pattern"""
+        import re
+        
+        organization_pattern = self.config.get("organization_pattern")
+        require_match = self.config.get("require_organization_match", False)
+        
+        # If no pattern is set, always allow
+        if not organization_pattern:
+            return True
+        
+        # Get current organization from IP info
+        # This would need to be passed from the main monitor or retrieved here
+        # For now, we'll assume it's available in the config or we'll get it from IP info
+        current_organization = self._get_current_organization()
+        
+        if not current_organization:
+            # If we can't determine organization, allow test unless require_match is True
+            return not require_match
+        
+        # Check if organization matches pattern
+        try:
+            pattern = re.compile(organization_pattern, re.IGNORECASE)
+            matches = bool(pattern.search(current_organization))
+            
+            if require_match:
+                return matches
+            else:
+                # If require_match is False, we're filtering OUT matching organizations
+                return not matches
+                
+        except re.error as e:
+            self.logger.error(f"Invalid organization pattern '{organization_pattern}': {e}")
+            return True  # Allow test if pattern is invalid
+    
+    def _get_current_organization(self) -> Optional[str]:
+        """Get current ISP organization from IP info"""
+        # Try to get organization from the main monitor's IP info
+        # This requires access to the IP info manager or cached IP data
+        try:
+            # Check if we have access to the main monitor through hass
+            if hasattr(self.hass, 'data') and 'isp_health' in self.hass.data:
+                # Get the coordinator from hass data
+                for entry_id, coordinator in self.hass.data['isp_health'].items():
+                    if hasattr(coordinator, 'data') and coordinator.data:
+                        ip_info = coordinator.data.get('sensors', {}).get('ip_info', {})
+                        if ip_info and ip_info.get('status') != 'error':
+                            return ip_info.get('organization')
+            return None
+        except Exception as e:
+            self.logger.debug(f"Could not get current organization: {e}")
             return None
 
 

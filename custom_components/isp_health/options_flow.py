@@ -123,6 +123,49 @@ class ISPHealthOptionsFlowHandler(config_entries.OptionsFlow):
                     default=current_sensors.get("throughput", {}).get("interval", 3600)
                 ): vol.All(vol.Coerce(int), vol.Range(min=3600, max=86400)),
                 
+                # Throughput test configuration
+                vol.Required(
+                    "test_download", 
+                    default=current_sensors.get("throughput", {}).get("test_download", True)
+                ): bool,
+                
+                vol.Required(
+                    "test_upload", 
+                    default=current_sensors.get("throughput", {}).get("test_upload", True)
+                ): bool,
+                
+                vol.Required(
+                    "test_ping", 
+                    default=current_sensors.get("throughput", {}).get("test_ping", True)
+                ): bool,
+                
+                # Time window configuration
+                vol.Required(
+                    "allowed_hours_start", 
+                    default=current_sensors.get("throughput", {}).get("allowed_hours_start", 0)
+                ): vol.All(vol.Coerce(int), vol.Range(min=0, max=23)),
+                
+                vol.Required(
+                    "allowed_hours_end", 
+                    default=current_sensors.get("throughput", {}).get("allowed_hours_end", 23)
+                ): vol.All(vol.Coerce(int), vol.Range(min=0, max=23)),
+                
+                vol.Optional(
+                    "allowed_days",
+                    default=",".join(map(str, current_sensors.get("throughput", {}).get("allowed_days", list(range(7)))))
+                ): str,
+                
+                # Organization filtering
+                vol.Optional(
+                    "organization_pattern",
+                    default=current_sensors.get("throughput", {}).get("organization_pattern", "")
+                ): str,
+                
+                vol.Required(
+                    "require_organization_match", 
+                    default=current_sensors.get("throughput", {}).get("require_organization_match", False)
+                ): bool,
+                
                 vol.Required(
                     "enable_dns_reliability", 
                     default=current_sensors.get("dns_reliability", {}).get("enabled", True)
@@ -178,9 +221,27 @@ class ISPHealthOptionsFlowHandler(config_entries.OptionsFlow):
             "enabled": user_input.get("enable_jitter", True),
             "interval": user_input.get("jitter_interval", 120)
         }
+        # Parse allowed days from comma-separated string
+        allowed_days_str = user_input.get("allowed_days", "0,1,2,3,4,5,6")
+        try:
+            allowed_days = [int(day.strip()) for day in allowed_days_str.split(",") if day.strip()]
+        except ValueError:
+            allowed_days = list(range(7))  # Default to all days if parsing fails
+        
         sensors_config["throughput"] = {
             "enabled": user_input.get("enable_throughput", False),
-            "interval": user_input.get("throughput_interval", 3600)
+            "interval": user_input.get("throughput_interval", 3600),
+            # Test configuration
+            "test_download": user_input.get("test_download", True),
+            "test_upload": user_input.get("test_upload", True),
+            "test_ping": user_input.get("test_ping", True),
+            # Time window configuration
+            "allowed_hours_start": user_input.get("allowed_hours_start", 0),
+            "allowed_hours_end": user_input.get("allowed_hours_end", 23),
+            "allowed_days": allowed_days,
+            # Organization filtering
+            "organization_pattern": user_input.get("organization_pattern", ""),
+            "require_organization_match": user_input.get("require_organization_match", False),
         }
         sensors_config["dns_reliability"] = {
             "enabled": user_input.get("enable_dns_reliability", True),
