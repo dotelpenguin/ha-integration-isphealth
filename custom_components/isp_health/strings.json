@@ -2,53 +2,14 @@
   "config": {
     "step": {
       "user": {
-        "title": "Basic Configuration",
-        "description": "Configure basic ISP health monitoring settings. This integration tracks your internet connection quality, speed, and reliability. All core features work without API keys using free services.\n\n**Rate Limits:**\n• ip-api.com: 45 requests/minute (free)\n• ipinfo.io: 50,000 requests/month (free), unlimited with token\n• ipgeolocation.io: Requires API key (paid service)",
+        "title": "ISP Health Monitor Setup",
+        "description": "Simple ISP health monitoring that tracks your internet connection quality and speed. All features work without API keys using free services.\n\n**What it monitors:**\n• Your public IP address and location\n• DNS server configuration\n• Network latency (ping times)\n• Internet speed (optional)\n\n**Rate Limits:**\n• ip-api.com: 45 requests/minute (free)\n• ipinfo.io: 50,000 requests/month (free), unlimited with token",
         "data": {
-          "update_interval": "General Update Interval (seconds)",
+          "update_interval": "Update Interval (seconds)",
           "ip_info_source": "IP Information Provider",
-          "ip_info_token": "API Token (optional for higher rate limits)"
-        }
-      },
-      "core_sensors": {
-        "title": "Core Sensors Configuration",
-        "description": "Configure core sensors that provide basic network information. These sensors are always enabled and provide essential connectivity data.",
-        "data": {
-          "ip_info_interval": "IP Information Check Interval (seconds)",
-          "dns_config_interval": "DNS Configuration Check Interval (seconds)",
-          "custom_dns": "Custom DNS Servers (comma-separated IP addresses)"
-        }
-      },
-      "extended_sensors": {
-        "title": "Extended Sensors Configuration",
-        "description": "Configure extended sensors that provide detailed network analysis. Enable only what you need to avoid unnecessary resource usage.",
-        "data": {
-          "enable_latency": "Enable Network Latency Monitoring",
-          "latency_interval": "Latency Check Interval (seconds)",
-          "enable_packet_loss": "Enable Packet Loss Monitoring",
-          "packet_loss_interval": "Packet Loss Check Interval (seconds)",
-          "enable_jitter": "Enable Network Jitter Monitoring",
-          "jitter_interval": "Jitter Check Interval (seconds)",
-          "enable_dns_reliability": "Enable DNS Reliability Monitoring",
-          "dns_reliability_interval": "DNS Reliability Check Interval (seconds)",
-          "enable_route_stability": "Enable Route Analysis (Advanced)",
-          "route_stability_interval": "Route Analysis Interval (seconds)"
-        }
-      },
-      "throughput": {
-        "title": "Speed Test Configuration",
-        "description": "Configure speed testing with advanced options to minimize bandwidth usage and control when tests run.\n\n**Features:**\n• Time window scheduling to avoid peak hours\n• Separate upload/download test control\n• Organization-based filtering for ISP-specific rules",
-        "data": {
-          "enable_throughput": "Enable Speed Testing (Uses bandwidth)",
-          "throughput_interval": "Speed Test Interval (seconds)",
-          "test_download": "Enable Download Speed Testing",
-          "test_upload": "Enable Upload Speed Testing",
-          "test_ping": "Enable Ping Testing",
-          "allowed_hours_start": "Allowed Start Hour (0-23)",
-          "allowed_hours_end": "Allowed End Hour (0-23)",
-          "allowed_days": "Allowed Days (0=Monday, 1=Tuesday, etc. Comma-separated)",
-          "organization_pattern": "ISP Organization Pattern (regex, optional)",
-          "require_organization_match": "Require Organization Match (only test if pattern matches)"
+          "ip_info_token": "API Token (optional for higher rate limits)",
+          "enable_latency": "Enable Latency Monitoring",
+          "enable_speed_test": "Enable Speed Testing (uses bandwidth)"
         }
       }
     },
@@ -65,34 +26,13 @@
     "step": {
       "init": {
         "title": "ISP Health Monitor Options",
-        "description": "Modify your ISP health monitoring configuration. Changes will take effect after saving. You can enable/disable sensors and adjust update intervals.",
+        "description": "Modify your ISP health monitoring configuration. Changes will take effect after saving.",
         "data": {
-          "update_interval": "General Update Interval (seconds)",
+          "update_interval": "Update Interval (seconds)",
           "ip_info_source": "IP Information Provider",
           "ip_info_token": "API Token (optional for higher rate limits)",
-          "ip_info_interval": "IP Information Check Interval (seconds)",
-          "dns_config_interval": "DNS Configuration Check Interval (seconds)",
-          "custom_dns": "Custom DNS Servers (comma-separated IP addresses)",
-          "enable_latency": "Enable Network Latency Monitoring",
-          "latency_interval": "Latency Check Interval (seconds)",
-          "enable_packet_loss": "Enable Packet Loss Monitoring",
-          "packet_loss_interval": "Packet Loss Check Interval (seconds)",
-          "enable_jitter": "Enable Network Jitter Monitoring",
-          "jitter_interval": "Jitter Check Interval (seconds)",
-          "enable_throughput": "Enable Speed Testing (Uses bandwidth)",
-          "throughput_interval": "Speed Test Interval (seconds)",
-          "test_download": "Enable Download Speed Testing",
-          "test_upload": "Enable Upload Speed Testing",
-          "test_ping": "Enable Ping Testing",
-          "allowed_hours_start": "Allowed Start Hour (0-23)",
-          "allowed_hours_end": "Allowed End Hour (0-23)",
-          "allowed_days": "Allowed Days (0=Monday, 1=Tuesday, etc. Comma-separated)",
-          "organization_pattern": "ISP Organization Pattern (regex, optional)",
-          "require_organization_match": "Require Organization Match (only test if pattern matches)",
-          "enable_dns_reliability": "Enable DNS Reliability Monitoring",
-          "dns_reliability_interval": "DNS Reliability Check Interval (seconds)",
-          "enable_route_stability": "Enable Route Analysis (Advanced)",
-          "route_stability_interval": "Route Analysis Interval (seconds)"
+          "enable_latency": "Enable Latency Monitoring",
+          "enable_speed_test": "Enable Speed Testing (uses bandwidth)"
         }
       }
     }
