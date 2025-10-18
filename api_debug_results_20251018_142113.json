@@ -1,0 +1,36 @@
+{
+  "ip-api.com": {
+    "source": "ip-api.com",
+    "error": "Cannot connect to host ip-api.com:80 ssl:default [Multiple exceptions: [Errno 111] Connect call failed ('0.0.0.0', 80), [Errno 111] Connect call failed ('::', 80, 0, 0)]"
+  },
+  "ipinfo.io": {
+    "source": "ipinfo.io",
+    "ip": "71.10.63.200",
+    "hostname": "syn-071-010-063-200.res.spectrum.com",
+    "city": "Whitmore Lake",
+    "region": "Michigan",
+    "country": "US",
+    "latitude": "42.4397",
+    "longitude": "-83.7453",
+    "organization": "AS20115 Charter Communications LLC",
+    "postal_code": "48189",
+    "timezone": "America/Detroit",
+    "raw_response": {
+      "ip": "71.10.63.200",
+      "hostname": "syn-071-010-063-200.res.spectrum.com",
+      "city": "Whitmore Lake",
+      "region": "Michigan",
+      "country": "US",
+      "loc": "42.4397,-83.7453",
+      "org": "AS20115 Charter Communications LLC",
+      "postal": "48189",
+      "timezone": "America/Detroit",
+      "readme": "https://ipinfo.io/missingauth"
+    },
+    "timestamp": "2025-10-18T14:21:13.713461"
+  },
+  "ipgeolocation.io": {
+    "source": "ipgeolocation.io",
+    "error": "No API key provided"
+  }
+}
